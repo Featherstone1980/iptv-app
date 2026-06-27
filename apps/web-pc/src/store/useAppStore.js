@@ -530,7 +530,8 @@ export const useAppStore = create((set, get) => ({
       const foundIds = new Set();
       
       const USE_LOCAL = import.meta.env.VITE_USE_LOCAL_EPG === 'true';
-      const batchSize = USE_LOCAL ? 500 : 25; // Massive chunks for local proxy, small chunks for GitHub CDN to prevent rate limiting
+      // Reduce local chunk size from 500 to 100 to prevent locking the UI thread during JSON parsing & IndexedDB bulkPut
+      const batchSize = USE_LOCAL ? 100 : 25; 
       
       for (let i = 0; i < remainingChannels.length; i += batchSize) {
         if (abortSignal.aborted) break;
@@ -583,8 +584,12 @@ export const useAppStore = create((set, get) => ({
         }
         
         set({ epgLoadingProgress: Math.round(((i + chunk.length) / remainingChannels.length) * 50) });
+        
+        // ALWAYS yield to the main thread! Even if local, we need to let the browser paint the UI so it stays smooth.
         if (!USE_LOCAL && i + batchSize < remainingChannels.length) {
           await new Promise(r => setTimeout(r, 200)); // GitHub Pages DDoS protection delay
+        } else {
+          await new Promise(r => requestAnimationFrame(r)); // Yield to UI thread to prevent stuttering
         }
       }
       
