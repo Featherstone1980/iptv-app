@@ -524,54 +524,58 @@ export const useAppStore = create((set, get) => ({
         return;
       }
 
-      // 2. Fetch Bulk Custom EPG to resolve 95% of channels instantly!
+      // 2. Fetch Bulk Custom EPG to resolve 95% of channels
       const { getCustomEpgBulk } = await import('../services/api');
-      let bulkRes = await getCustomEpgBulk(remainingChannels);
-      
-      // Wait for backend to finish parsing massive XML files if still running
-      let retryCount = 0;
-      while (bulkRes && bulkRes.status === 'downloading_in_background' && retryCount < 12) {
-        console.log("[EPG] Backend is parsing XMLTV files. Waiting 5 seconds...");
-        await new Promise(r => setTimeout(r, 5000));
-        bulkRes = await getCustomEpgBulk(remainingChannels);
-        retryCount++;
-      }
-      
       const { epgDb } = await import('../db/epgDatabase');
       const foundIds = new Set();
-      let programsToSave = [];
-
-      if (bulkRes && bulkRes.epg_listings && Object.keys(bulkRes.epg_listings).length > 0) {
-        for (const [chId, progs] of Object.entries(bulkRes.epg_listings)) {
-          if (progs && progs.length > 0) {
-            progs.forEach((prog, pIndex) => {
-              const rawStart = parseInt(prog.start_timestamp || prog.start_ts, 10);
-              const rawStop = parseInt(prog.stop_timestamp || prog.stop_ts, 10);
-              const startTs = rawStart ? (rawStart > 1e11 ? rawStart : rawStart * 1000) : new Date(prog.start || prog.start_str || 0).getTime();
-              const stopTs = rawStop ? (rawStop > 1e11 ? rawStop : rawStop * 1000) : new Date(prog.end || prog.stop_str || 0).getTime();
-              
-              let decodedTitle = prog.title || '';
-              let decodedDesc = prog.description || '';
-              try {
-                if (typeof decodedTitle === 'string' && decodedTitle.match(/^[A-Za-z0-9+/]+={0,2}$/)) decodedTitle = atob(decodedTitle);
-                if (typeof decodedDesc === 'string' && decodedDesc.match(/^[A-Za-z0-9+/]+={0,2}$/)) decodedDesc = atob(decodedDesc);
-              } catch(e) {}
-              
-              programsToSave.push({
-                 id: prog.id || `prog_${startTs}_${pIndex}`,
-                 channel_id: String(chId),
-                 title: decodedTitle,
-                 description: decodedDesc,
-                 start_timestamp: startTs + epgOffsetMs,
-                 stop_timestamp: stopTs + epgOffsetMs
+      
+      const USE_LOCAL = import.meta.env.VITE_USE_LOCAL_EPG === 'true';
+      const batchSize = USE_LOCAL ? 500 : 25; // Massive chunks for local proxy, small chunks for GitHub CDN to prevent rate limiting
+      
+      for (let i = 0; i < remainingChannels.length; i += batchSize) {
+        if (abortSignal.aborted) break;
+        const chunk = remainingChannels.slice(i, i + batchSize);
+        
+        let bulkRes = await getCustomEpgBulk(chunk);
+        
+        let programsToSave = [];
+        if (bulkRes && bulkRes.epg_listings && Object.keys(bulkRes.epg_listings).length > 0) {
+          for (const [chId, progs] of Object.entries(bulkRes.epg_listings)) {
+            if (progs && progs.length > 0) {
+              progs.forEach((prog, pIndex) => {
+                const rawStart = parseInt(prog.start_timestamp || prog.start_ts, 10);
+                const rawStop = parseInt(prog.stop_timestamp || prog.stop_ts, 10);
+                const startTs = rawStart ? (rawStart > 1e11 ? rawStart : rawStart * 1000) : new Date(prog.start || prog.start_str || 0).getTime();
+                const stopTs = rawStop ? (rawStop > 1e11 ? rawStop : rawStop * 1000) : new Date(prog.end || prog.stop_str || 0).getTime();
+                
+                let decodedTitle = prog.title || '';
+                let decodedDesc = prog.description || '';
+                try {
+                  if (typeof decodedTitle === 'string' && decodedTitle.match(/^[A-Za-z0-9+/]+={0,2}$/)) decodedTitle = atob(decodedTitle);
+                  if (typeof decodedDesc === 'string' && decodedDesc.match(/^[A-Za-z0-9+/]+={0,2}$/)) decodedDesc = atob(decodedDesc);
+                } catch(e) {}
+                
+                programsToSave.push({
+                   id: prog.id || `prog_${startTs}_${pIndex}`,
+                   channel_id: String(chId),
+                   title: decodedTitle,
+                   description: decodedDesc,
+                   start_timestamp: startTs + epgOffsetMs,
+                   stop_timestamp: stopTs + epgOffsetMs
+                });
               });
-            });
-            foundIds.add(String(chId));
+              foundIds.add(String(chId));
+            }
+          }
+          
+          if (programsToSave.length > 0) {
+             await epgDb.programs.bulkPut(programsToSave).catch(e => console.error("Dexie bulkPut error:", e));
           }
         }
         
-        if (programsToSave.length > 0) {
-           await epgDb.programs.bulkPut(programsToSave).catch(e => console.error("Dexie bulkPut error:", e));
+        set({ epgLoadingProgress: Math.round(((i + chunk.length) / remainingChannels.length) * 50) });
+        if (!USE_LOCAL && i + batchSize < remainingChannels.length) {
+          await new Promise(r => setTimeout(r, 200)); // GitHub Pages DDoS protection delay
         }
       }
       

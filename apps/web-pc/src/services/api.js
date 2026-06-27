@@ -205,7 +205,7 @@ let globalDisplayNames = null;
 export const getCustomEpgBulk = async (channels) => {
     // By default, use the GitHub Pages CDN for all clients
     const USE_LOCAL = import.meta.env.VITE_USE_LOCAL_EPG === 'true';
-    const GITHUB_PAGES_URL = USE_LOCAL ? "http://localhost:3001/epg_data" : "https://Featherstone1980.github.io/iptv-app";
+    const GITHUB_PAGES_URL = USE_LOCAL ? null : "https://Featherstone1980.github.io/iptv-app";
 
     if (GITHUB_PAGES_URL) {
       try {
@@ -327,20 +327,19 @@ export const getCustomEpgBulk = async (channels) => {
                   const res = await fetch(`${GITHUB_PAGES_URL}/${encodeURIComponent(chId)}.json?t=${Date.now()}`);
                   if (res.ok) {
                     const data = await res.json();
-                    epg_listings[ch.stream_id] = data.map(p => ({
-                       ...p,
-                       start_timestamp: p.start_ts / 1000,
-                       stop_timestamp: p.stop_ts / 1000,
-                       start: new Date(p.start_ts).toISOString(),
-                       end: new Date(p.stop_ts).toISOString()
-                    }));
-                  } else {
+                    if (data && data.length > 0) {
+                      epg_listings[ch.stream_id] = data.map(p => ({
+                         ...p,
+                         start_timestamp: p.start_ts / 1000,
+                         stop_timestamp: p.stop_ts / 1000,
+                         start: new Date(p.start_ts).toISOString(),
+                         end: new Date(p.stop_ts).toISOString()
+                      }));
+                    }
                   }
                 } catch(e) {
-                  epg_listings[ch.stream_id] = [];
+                  // Do not populate empty arrays on error, let the provider fallback handle it
                 }
-              } else {
-                epg_listings[ch.stream_id] = [];
               }
           }));
         }
