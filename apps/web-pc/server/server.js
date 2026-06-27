@@ -1243,6 +1243,8 @@ app.post('/api/custom-epg/bulk', express.json({ limit: '50mb' }), async (req, re
     return '';
   };
 
+  const channelMapEntries = Object.entries(epgData.channelMap || {});
+
   for (const c of channels) {
     const channelName = c.name;
     if (!channelName) continue;
@@ -1275,7 +1277,7 @@ app.post('/api/custom-epg/bulk', express.json({ limit: '50mb' }), async (req, re
       else if (cleaned.length >= 2) {
         let bestScore = 0;
         let bestId = null;
-        for (const [key, ids] of Object.entries(epgData.channelMap)) {
+        for (const [key, ids] of channelMapEntries) {
           // Optimization: Skip jaccard if strings share almost no letters
           if (Math.abs(cleaned.length - key.length) > 5) continue;
           
