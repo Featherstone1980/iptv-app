@@ -138,14 +138,28 @@ const EPGGrid = ({ channels, epgData = {}, onPlay, categorySelector, onHoverChan
   const epgCacheRef = useRef(new Map());
   const [cacheVersion, setCacheVersion] = useState(0);
 
-  // Clear cache and force re-fetch when background EPG sync finishes
+  // Continually clear empty cache entries for visible channels as background sync progresses
   const epgLoadingProgress = useAppStore(state => state.epgLoadingProgress);
   useEffect(() => {
-    if (epgLoadingProgress === 100) {
-      epgCacheRef.current.clear();
-      setCacheVersion(v => v + 1);
+    if (epgLoadingProgress > 0) {
+      if (epgLoadingProgress === 100) {
+        epgCacheRef.current.clear();
+        setCacheVersion(v => v + 1);
+      } else {
+        // While syncing, check if any currently visible channels have an empty cache.
+        // If they do, delete them from the cache so the fetch effect will re-query Dexie!
+        const ids = channelIdsKey.split(',').filter(Boolean);
+        let changed = false;
+        for (const id of ids) {
+          if (epgCacheRef.current.has(id) && epgCacheRef.current.get(id).length === 0) {
+            epgCacheRef.current.delete(id);
+            changed = true;
+          }
+        }
+        if (changed) setCacheVersion(v => v + 1);
+      }
     }
-  }, [epgLoadingProgress]);
+  }, [epgLoadingProgress, channelIdsKey]);
 
   useEffect(() => {
     let isMounted = true;
