@@ -1176,17 +1176,15 @@ const cleanChannelName = (name) => {
  * bigrams 'es','sp','pn' out of 5 total = 0.6, correctly identifying partial match.
  * "fox" vs "cbs" share 0 bigrams = 0.0, correctly rejecting the false match.
  */
-const jaccardSim = (a, b) => {
-  if (a === b) return 1;
-  if (!a || !b || a.length < 2 || b.length < 2) return a === b ? 1 : 0;
+const jaccardSim = (aBigrams, aLen, b) => {
+  if (aLen < 2 || !b || b.length < 2) return 0;
   
-  // Optimized bigram matching without Set allocations
+  // Optimized bigram matching without string allocation inside the inner loop
   let intersection = 0;
-  for (let i = 0; i < a.length - 1; i++) {
-    const bi = a[i] + a[i+1];
-    if (b.indexOf(bi) !== -1) intersection++;
+  for (let i = 0; i < aBigrams.length; i++) {
+    if (b.indexOf(aBigrams[i]) !== -1) intersection++;
   }
-  const union = (a.length - 1) + (b.length - 1) - intersection;
+  const union = (aLen - 1) + (b.length - 1) - intersection;
   return union === 0 ? 0 : intersection / union;
 };
 app.get('/api/custom-epg/keys', async (req, res) => {
@@ -1277,11 +1275,25 @@ app.post('/api/custom-epg/bulk', express.json({ limit: '50mb' }), async (req, re
       else if (cleaned.length >= 2) {
         let bestScore = 0;
         let bestId = null;
+
+        // Precompute bigrams for the search string once per channel (zero allocation inside loop)
+        const cleanedBigrams = [];
+        for (let i = 0; i < cleaned.length - 1; i++) {
+          cleanedBigrams.push(cleaned[i] + cleaned[i+1]);
+        }
+
         for (const [key, ids] of channelMapEntries) {
+          // Pass 1.5: Fast Substring Check (O(1) Instant Match)
+          if (key.includes(cleaned) || cleaned.includes(key)) {
+             bestScore = 1;
+             bestId = ids[0];
+             break;
+          }
+
           // Optimization: Skip jaccard if strings share almost no letters
           if (Math.abs(cleaned.length - key.length) > 5) continue;
           
-          const score = jaccardSim(cleaned, key);
+          const score = jaccardSim(cleanedBigrams, cleaned.length, key);
           if (score > bestScore) {
             bestScore = score;
             bestId = ids[0];
