@@ -1,0 +1,119 @@
+.global-search-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 10000;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(20px);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 5vh;
+}
+
+.search-modal {
+  position: relative;
+  width: 90%;
+  max-width: 1200px;
+  height: 85vh;
+  background: rgba(20, 20, 20, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.close-btn {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+.search-header {
+  padding: 4rem 4rem 2rem 4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-input-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+}
+
+.search-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 24px 24px 24px 72px;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: white;
+  outline: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.search-input:focus {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--accent-color);
+  box-shadow: 0 10px 40px rgba(var(--accent-color-rgb, 236, 72, 153), 0.3);
+}
+
+.search-input::placeholder {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.search-message {
+  padding: 4rem;
+  text-align: center;
+  font-size: 1.5rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.search-results {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 4rem;
+}
+
+.search-category-title {
+  font-size: 2rem;
+  font-weight: 800;
+  margin: 2rem 4rem 1rem;
+  color: white;
+}

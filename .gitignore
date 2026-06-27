@@ -1,0 +1,9 @@
+node_modules
+
+*.sqlite
+*.sqlite-wal
+*.xml
+*.exe
+apps/web-pc/release/
+epg_cache.json
+

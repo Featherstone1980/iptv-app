@@ -1,0 +1,194 @@
+.hero-banner {
+  position: relative;
+  width: 100%;
+  height: 60vh; /* Slightly smaller, more elite cinematic height */
+  min-height: 450px;
+  margin-bottom: 1rem; /* Standard spacing before posters */
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: 3rem; /* Normal padding for text */
+  z-index: 1;
+}
+
+.hero-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  overflow: hidden;
+}
+
+.hero-backdrop img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 10%;
+  animation: heroSlowZoom 30s ease-out forwards;
+}
+
+@keyframes heroSlowZoom {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.15); }
+}
+
+.hero-gradient {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* Aggressive fade to the true dark #050505 background */
+  background: linear-gradient(to top, 
+    var(--bg-primary) 0%, 
+    rgba(5, 5, 5, 0.95) 15%, 
+    rgba(5, 5, 5, 0.4) 50%, 
+    transparent 100%
+  );
+}
+
+.hero-vignette {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at center, transparent 40%, rgba(5, 5, 5, 0.7) 100%);
+  pointer-events: none;
+}
+
+.hero-content {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  min-width: 0;
+  padding-left: 112px;
+  padding-right: 2rem;
+  box-sizing: border-box;
+  z-index: 2;
+  animation: fadeInUp 1s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+.hero-context-label {
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--accent-primary, #ec4899);
+  margin-bottom: 0.75rem;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+}
+
+.hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 4rem);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -1.5px;
+  color: white;
+  margin-bottom: 1rem;
+  text-shadow: 0 4px 24px rgba(0,0,0,0.8);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+}
+
+.hero-plot {
+  font-size: 1.15rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 2rem;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+  max-width: 100%;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 1.25rem;
+  align-items: center;
+  flex-wrap: wrap;
+  min-width: 0;
+  width: 100%;
+}
+
+.btn-hero-play {
+  background: white;
+  color: black;
+  padding: 14px 40px;
+  border-radius: 9999px; /* Pill shape */
+  font-size: 1.25rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 8px 24px rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  border: none;
+}
+
+.btn-hero-play:hover, .btn-hero-play:focus {
+  transform: scale(1.05);
+  background: #f0f0f0;
+  box-shadow: 0 12px 32px rgba(255, 255, 255, 0.5);
+  outline: none;
+}
+
+.btn-hero-info {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: white;
+  padding: 14px 32px;
+  border-radius: 9999px; /* Pill shape */
+  font-size: 1.15rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.btn-hero-info:hover, .btn-hero-info:focus {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: scale(1.05);
+  outline: none;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-content {
+    padding-left: 112px;
+    padding-right: 2rem;
+  }
+  .hero-title {
+    font-size: clamp(2rem, 8vw, 3rem);
+  }
+  .hero-banner {
+    height: auto;
+    min-height: 400px;
+    padding-bottom: 2rem;
+    padding-top: 4rem;
+  }
+}

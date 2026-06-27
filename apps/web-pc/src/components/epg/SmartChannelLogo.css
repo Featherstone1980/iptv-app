@@ -1,0 +1,26 @@
+/* SmartChannelLogo.css */
+
+.smart-channel-logo-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white; /* Pure white unifies all logos and hides JPEG artifacts */
+  border-radius: 10px; /* Apple TV style rounded square */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  padding: 2px;
+}
+
+.smart-channel-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Base sizing if not overridden by parent class */
+.smart-channel-logo-wrapper:not([class*="channel-logo"]) {
+  width: 50px;
+  height: 50px;
+}

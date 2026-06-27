@@ -1,0 +1,14 @@
+{
+  "name": "streampro-iptv-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run start --workspace=@iptv/web-pc",
+    "build": "npm run build --workspace=@iptv/web-pc",
+    "build:exe": "npm run build:exe --workspace=@iptv/web-pc"
+  }
+}

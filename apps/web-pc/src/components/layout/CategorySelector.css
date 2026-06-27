@@ -1,0 +1,81 @@
+.category-selector-container {
+  width: 100%;
+  margin-bottom: 1.5rem;
+  padding: 0 2rem 1rem 112px;
+}
+
+.category-dropdown-wrapper {
+  position: relative;
+  width: 300px;
+}
+
+.category-dropdown {
+  appearance: none;
+  width: 100%;
+  padding: 12px 40px 12px 20px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  color: var(--text-primary);
+  font-family: var(--font-primary);
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.category-dropdown:hover, .category-dropdown:focus {
+  border-color: var(--accent-primary);
+  background: rgba(99, 102, 241, 0.1);
+}
+
+.category-dropdown option {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  padding: 10px;
+}
+
+.dropdown-icon {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+  pointer-events: none;
+  font-size: 0.8rem;
+}
+
+/* Compact Mode (for embedding in tight spaces like the EPG grid) */
+.category-selector-container.compact {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.category-selector-container.compact .category-dropdown-wrapper {
+  width: 100%;
+}
+
+.category-selector-container.compact .category-dropdown {
+  padding: 8px 30px 8px 12px;
+  font-size: 0.85rem;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.category-selector-container.compact .category-dropdown:hover, 
+.category-selector-container.compact .category-dropdown:focus {
+  border-color: var(--accent-primary);
+  background: rgba(99, 102, 241, 0.15);
+}

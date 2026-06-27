@@ -1,0 +1,181 @@
+.library-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1.5rem;
+  padding: 1rem 0;
+}
+
+.library-card {
+  position: relative;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+  cursor: grab;
+  aspect-ratio: 2/3;
+  display: flex;
+  flex-direction: column;
+}
+
+.library-card:active {
+  cursor: grabbing;
+}
+
+.library-card.live-card {
+  aspect-ratio: 16/9;
+}
+
+.library-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+  background-color: rgba(255, 255, 255, 0.1);
+  z-index: 10;
+}
+
+.library-card.dragging {
+  opacity: 0.4;
+  transform: scale(0.95);
+}
+
+.library-card.drag-over {
+  border: 2px dashed var(--accent-primary, #6366f1);
+}
+
+.library-poster {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  flex: 1;
+}
+
+.library-poster.fallback {
+  object-fit: contain;
+  padding: 2rem;
+  background-color: rgba(0,0,0,0.5);
+}
+
+.library-info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1rem;
+  background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+  pointer-events: none;
+}
+
+.library-title {
+  font-weight: bold;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+}
+
+.library-actions {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.library-card:hover .library-actions {
+  opacity: 1;
+}
+
+.library-btn {
+  background: rgba(0,0,0,0.6);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.library-btn:hover {
+  background: var(--accent-primary, #6366f1);
+  transform: scale(1.1);
+}
+
+.library-btn.remove:hover {
+  background: #ef4444;
+}
+
+.sort-btn {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.sort-btn:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+.sort-btn.active {
+  background: var(--accent-primary, #6366f1);
+  border-color: transparent;
+}
+
+.procedural-poster {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  text-align: center;
+  transition: transform 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.procedural-poster::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 100%);
+  pointer-events: none;
+}
+
+.procedural-initials {
+  font-size: 5rem;
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.05);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 0;
+  user-select: none;
+}
+
+.procedural-poster .fallback-title {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.25;
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  z-index: 1;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}

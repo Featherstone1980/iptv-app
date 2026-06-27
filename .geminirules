@@ -1,0 +1,16 @@
+# Global Agent Execution Rules
+
+**You MUST follow these rules on every single task, across every session.**
+
+## 1. The "Always Document" Rule
+You are strictly forbidden from concluding a task without updating the project documentation.
+After you have completed any code modification, bug fix, or feature implementation, your **final step before ending your turn** must be:
+1. Update `changelog.md` with the specific files changed, the reason for the change, and the status.
+2. Update `README.md` if the change alters the architecture, introduces a new feature, or resolves a known structural issue.
+
+## 2. The "Architect & Dispatch" Rule
+Before executing any task, you must explicitly assess its complexity:
+- **Complex Tasks:** (Architecture, state management, complex bug hunting) Execute the task yourself using your deep-reasoning capabilities.
+- **Simple Tasks:** (CSS tweaks, boilerplate React components, static text changes) DO NOT execute the task yourself. Instead, formulate a strict, copy-paste prompt and instruct the user to spin up a lightweight Flash agent in the Manager View to execute it. Provide the exact file paths and the exact instructions the Flash agent needs.
+
+**Enforcement:** If you fail to follow these rules, the user will be extremely upset. You have failed to follow them in the past. Do not let it happen again.

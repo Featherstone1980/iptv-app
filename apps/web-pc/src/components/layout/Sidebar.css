@@ -1,0 +1,125 @@
+.sidebar {
+  box-sizing: border-box;
+  width: 80px;
+  height: 100vh;
+  padding: 24px 16px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 200;
+  background: transparent;
+  border-right: 1px solid rgba(255,255,255,0.05);
+  transition: width 0.4s cubic-bezier(0.25, 1, 0.25, 1), padding 0.3s ease, background 0.3s ease, transform 0.3s ease;
+  overflow: hidden;
+}
+
+.sidebar:hover, .sidebar:focus-within {
+  width: var(--sidebar-expanded-width);
+  padding: 24px;
+  background: rgba(15, 15, 20, 0.6);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-right: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 15px 0 40px rgba(0,0,0,0.6);
+}
+
+.logo-container h2 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -1px;
+  background: linear-gradient(135deg, #fff 0%, var(--accent-primary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  width: 0;
+}
+
+.sidebar:hover .logo-container h2, .sidebar:focus-within .logo-container h2 {
+  opacity: 1;
+  width: auto;
+}
+
+.nav-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.nav-item {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  height: 48px;
+  width: 100%;
+  border-radius: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  outline: none;
+  overflow: hidden;
+  white-space: nowrap;
+  padding: 0 12px;
+}
+
+.nav-item span {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.sidebar:hover .nav-item span, .sidebar:focus-within .nav-item span {
+  opacity: 1;
+}
+
+.sidebar-brand-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  display: block;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.sidebar:hover .sidebar-brand-name, .sidebar:focus-within .sidebar-brand-name {
+  opacity: 1;
+}
+
+.nav-item:hover, .nav-item.focused {
+  background: transparent;
+  color: white;
+  transform: scale(1.05);
+  text-shadow: 0 0 12px rgba(255,255,255,0.4);
+}
+
+.nav-item.active {
+  background: transparent;
+  color: white;
+  font-weight: 700;
+}
+
+.nav-item.active svg {
+  filter: drop-shadow(0 0 8px rgba(255,255,255,0.6));
+}
+
+.nav-item.focused {
+  transform: scale(1.1);
+  text-shadow: 0 0 20px rgba(255,255,255,0.8);
+}
+
+.nav-item svg {
+  opacity: 0.7;
+  flex-shrink: 0;
+  min-width: 24px;
+  min-height: 24px;
+}
+
+.nav-item.active svg, .nav-item:hover svg, .nav-item.focused svg {
+  opacity: 1;
+}

@@ -1,0 +1,313 @@
+.profile-container {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #050505;
+}
+
+.profile-background-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  opacity: 0.6;
+  animation: slow-pan 30s linear infinite alternate;
+}
+
+.profile-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.9) 100%);
+  z-index: 1;
+}
+
+.profile-selection-box, .profile-add-box {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 1200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.profile-add-box {
+  max-width: 600px;
+  background: rgba(20, 20, 25, 0.7);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 4rem;
+  box-shadow: 0 25px 50px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+}
+
+.profile-title {
+  font-family: var(--font-display);
+  font-size: 3.5rem;
+  font-weight: 700;
+  color: white;
+  margin: 0 0 3rem 0;
+  text-align: center;
+  text-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+.profile-subtitle {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1.1rem;
+  text-align: center;
+  margin-top: -2rem;
+  margin-bottom: 2rem;
+}
+
+.profiles-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2.5rem;
+  justify-content: center;
+  align-items: flex-start;
+  margin-bottom: 4rem;
+}
+
+.profile-card {
+  background: transparent;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  outline: none;
+  gap: 1rem;
+}
+
+.profile-avatar-wrapper {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.05);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-emoji {
+  font-size: 5rem;
+}
+
+.profile-avatar-border {
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  border: 3px solid transparent;
+  transition: border-color 0.3s ease;
+  pointer-events: none;
+}
+
+.profile-card:hover .profile-avatar-wrapper,
+.profile-card:focus .profile-avatar-wrapper {
+  transform: scale(1.1);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+}
+
+.profile-card:hover .profile-avatar-border,
+.profile-card:focus .profile-avatar-border {
+  border-color: var(--accent-primary);
+}
+
+.profile-name {
+  font-family: var(--font-sans);
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.profile-card:hover .profile-name,
+.profile-card:focus .profile-name {
+  color: white;
+}
+
+.add-avatar-wrapper {
+  background: transparent;
+  border: 2px dashed rgba(255, 255, 255, 0.3);
+}
+
+.add-icon {
+  color: rgba(255, 255, 255, 0.5);
+  transition: color 0.3s ease;
+}
+
+.add-profile-btn:hover .add-avatar-wrapper,
+.add-profile-btn:focus .add-avatar-wrapper {
+  border-color: transparent;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.add-profile-btn:hover .add-icon,
+.add-profile-btn:focus .add-icon {
+  color: white;
+}
+
+.logout-provider-btn {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.6);
+  padding: 0.75rem 2rem;
+  border-radius: 50px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.logout-provider-btn:hover {
+  border-color: white;
+  color: white;
+  background: rgba(255,255,255,0.1);
+}
+
+.close-add-btn {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,0.5);
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.close-add-btn:hover {
+  color: white;
+}
+
+.add-profile-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.avatar-selection-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.avatar-choice {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 16px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  outline: none;
+  transition: transform 0.2s ease;
+}
+
+.avatar-choice-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+  object-fit: cover;
+}
+
+.avatar-choice-ring {
+  position: absolute;
+  inset: -4px;
+  border-radius: 20px;
+  border: 3px solid transparent;
+  transition: border-color 0.2s ease;
+}
+
+.avatar-choice:hover {
+  transform: scale(1.1);
+}
+
+.avatar-choice.active .avatar-choice-ring {
+  border-color: var(--accent-primary);
+}
+
+/* Re-use login btn and input group styles from LoginScreen.css for consistency if needed, 
+   or they are inherited if global. We'll explicitly define input here just in case. */
+.add-profile-form .input-group input {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  padding: 1.1rem 1.25rem;
+  border-radius: 16px;
+  font-size: 1.1rem;
+  text-align: center;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.add-profile-form .input-group input:focus {
+  border-color: var(--accent-primary);
+  background: rgba(0, 0, 0, 0.7);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-primary) 15%, transparent);
+}
+
+.add-profile-form .login-btn {
+  width: 100%;
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  color: var(--bg-primary);
+  border: none;
+  padding: 1.2rem;
+  border-radius: 16px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 10px 20px color-mix(in srgb, var(--accent-primary) 30%, transparent);
+}
+
+.add-profile-form .login-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 30px color-mix(in srgb, var(--accent-primary) 40%, transparent);
+}
+
+.profile-options {
+  margin-top: 30px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.auto-login-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.auto-login-label:hover {
+  color: white;
+}
+
+.auto-login-label input {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}

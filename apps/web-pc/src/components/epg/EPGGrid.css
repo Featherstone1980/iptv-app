@@ -1,0 +1,510 @@
+.epg-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 500px;
+  background: rgb(10, 10, 15);
+  overflow: hidden;
+}
+
+/* =========================================
+   Interactive Details Panel
+   ========================================= */
+.epg-details-panel {
+  height: 140px;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, rgba(20,20,25,0.95) 0%, rgba(10,10,15,0.9) 100%);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  box-shadow: 0 10px 30px -10px rgba(0,0,0,0.8);
+  display: flex;
+  align-items: center;
+  padding: 1rem 2.5rem;
+  position: relative;
+  gap: 2.5rem;
+  overflow: hidden;
+  transition: none; /* No height transitions â€” height must be immovable */
+}
+
+.epg-details-empty {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 1rem;
+  font-weight: 300;
+  letter-spacing: 1px;
+}
+
+.epg-details-logo {
+  width: 140px;
+  height: 80px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.epg-details-logo img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  background: rgba(255, 255, 255, 0.1);
+  filter: drop-shadow(0px 0px 4px rgba(255,255,255,0.4));
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+}
+
+.epg-details-logo-placeholder {
+  font-weight: 800;
+  color: rgba(255,255,255,0.7);
+  text-align: center;
+  padding: 1rem;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02));
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 12px;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.epg-details-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0; /* Prevents flex blowout on long titles */
+}
+
+.epg-details-title {
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+  margin: 0 0 0.5rem 0;
+  color: white;
+  text-shadow: 0 2px 15px rgba(0,0,0,0.9);
+  display: -webkit-box;
+  -webkit-line-clamp: 1; /* Clamp to 1 line â€” prevents height growth */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.epg-details-meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.epg-meta-channel {
+  font-weight: 600;
+  color: var(--accent-primary);
+}
+
+.epg-badge-hd {
+  background: rgba(255,255,255,0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.epg-details-extra {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding-left: 2rem;
+  border-left: 1px solid rgba(255,255,255,0.1);
+  min-width: 0;
+}
+
+.epg-details-desc {
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* Strict 2-line cap â€” prevents panel growth */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.epg-play-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: white;
+  color: black;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.epg-play-btn:hover {
+  transform: scale(1.05);
+  background: var(--accent-primary);
+  color: white;
+}
+
+/* Progress Bar */
+.epg-details-progress {
+  margin-top: 0.75rem;
+  width: 100%;
+  max-width: 400px;
+}
+
+.epg-progress-bar {
+  height: 3px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.epg-progress-fill {
+  height: 100%;
+  background: var(--accent-primary);
+  border-radius: 2px;
+  box-shadow: 0 0 10px var(--accent-primary);
+  transition: width 1s linear;
+}
+
+.epg-progress-time {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+
+/* =========================================
+   Grid Container (The actual EPG)
+   ========================================= */
+.epg-grid-container {
+  flex-grow: 1;
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  grid-template-rows: 60px 1fr;
+  overflow: hidden;
+  position: relative;
+}
+
+.epg-top-left-corner {
+  background: var(--bg-tertiary);
+  border-right: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+  z-index: 20;
+  min-width: 0;
+  min-height: 0;
+}
+
+.epg-timeline-header {
+  background: rgba(10, 10, 15, 0.85);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  overflow: hidden;
+  z-index: 100;
+  position: sticky;
+  top: 0;
+}
+
+.timeline-container {
+  display: flex;
+  height: 100%;
+  position: relative;
+}
+
+.timeline-slot {
+  width: 200px;
+  min-width: 200px;
+  max-width: 200px;
+  flex: 0 0 200px;
+  box-sizing: border-box;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding-left: 1rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-left: 1px solid rgba(255,255,255,0.05);
+}
+
+.epg-grid-content-wrapper {
+  overflow-y: auto;
+  overflow-x: auto;
+  flex: 1;
+  position: relative;
+  display: block;
+  /* Adds a smooth fade out to the far right edge of the grid! */
+  mask-image: linear-gradient(to right, black calc(100% - 100px), transparent);
+  -webkit-mask-image: linear-gradient(to right, black calc(100% - 100px), transparent);
+}
+
+.epg-virtual-list {
+  position: relative;
+  contain: layout style;
+}
+
+.sticky-channel {
+  position: sticky;
+  left: 0;
+  z-index: 50;
+  background: rgba(10, 10, 15, 0.95);
+  backdrop-filter: blur(10px);
+  border-right: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 5px 0 15px rgba(0,0,0,0.5);
+}
+
+.channel-slot {
+  height: 80px;
+  padding: 0 0.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.channel-number {
+  font-weight: 800;
+  font-size: 1.15rem;
+  color: rgba(255, 255, 255, 0.35);
+  min-width: 45px;
+  text-align: right;
+  flex-shrink: 0;
+  padding-right: 8px;
+  letter-spacing: -0.5px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.channel-logo {
+  width: 90px;
+  height: 60px;
+  object-fit: contain;
+  background: rgba(255, 255, 255, 0.1);
+  filter: drop-shadow(0px 0px 4px rgba(255,255,255,0.4));
+  border-radius: 8px;
+  padding: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  display: block;
+}
+
+.channel-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.epg-grid-content {
+  overflow: auto;
+  position: relative;
+  scroll-behavior: smooth;
+  min-width: 0;
+  min-height: 0;
+}
+
+.is-scrolling * {
+  pointer-events: none !important;
+}
+
+/* Custom scrollbar for grid */
+.epg-grid-content::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+.epg-grid-content::-webkit-scrollbar-corner {
+  background: transparent;
+}
+.epg-grid-content::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.1);
+  border-radius: 6px;
+}
+.epg-grid-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.3);
+}
+
+.grid-container {
+  position: relative;
+}
+
+.grid-row {
+  height: 80px;
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-bottom: 1px solid rgba(255,255,255,0.02);
+  contain: layout style paint;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 80px;
+}
+
+/* =========================================
+   Now Line (Playhead)
+   ========================================= */
+.epg-now-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #ef4444;
+  z-index: 15;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.8);
+  pointer-events: none;
+}
+.epg-now-line::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -4px;
+  width: 10px;
+  height: 10px;
+  background: #ef4444;
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.8);
+}
+
+/* =========================================
+   Program Cells
+   ========================================= */
+.program-cell {
+  position: absolute;
+  height: 100%;
+  padding: 4px;
+  cursor: pointer;
+  z-index: 1;
+  outline: none;
+  contain: layout style paint;
+}
+
+.program-cell:hover, .program-cell.focused {
+  z-index: 5;
+}
+
+.program-content {
+  background: var(--bg-tertiary);
+  height: 100%;
+  border-radius: 8px;
+  display: block;
+  border: 1px solid rgba(255,255,255,0.05);
+  position: relative;
+  contain: layout style paint;
+}
+
+.program-progress-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.1);
+  z-index: 0;
+  border-radius: 8px;
+}
+
+.program-text-wrapper {
+  position: sticky;
+  left: 262px; /* 250px channel column + 12px inset */
+  margin-left: 12px;
+  max-width: calc(100% - 24px);
+  width: max-content;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  z-index: 1;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: geometricPrecision;
+}
+
+/* Live Program Styling */
+.program-cell.is-live .program-content {
+  background-color: var(--bg-tertiary);
+  border-color: rgba(255,255,255,0.15);
+}
+
+.live-indicator-dot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 6px;
+  height: 6px;
+  background: #ef4444;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #ef4444;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.5); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.program-cell:hover .program-content, .program-cell.focused .program-content {
+  background: var(--accent-primary);
+  border-color: rgba(255,255,255,0.6);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.program-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 2px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.1;
+  /* Microscopic shadow forces robust sub-pixel anti-aliasing */
+  text-shadow: 0px 0px 1px rgba(255, 255, 255, 0.05);
+  transform: translate(0, 0); 
+}
+
+.program-time {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  white-space: nowrap;
+  text-shadow: 0px 0px 1px rgba(255, 255, 255, 0.05);
+  transform: translate(0, 0);
+  line-height: 1.1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.program-cell:hover .program-time, .program-cell.focused .program-time {
+  color: rgba(255,255,255,0.8);
+}
+
+/* Elite Live Progress - subtle glow instead of border */
+.program-cell.is-live .program-content {
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
+}
+
+/* For very short blocks, hide the time so the title is visible */
+.program-cell.is-small .program-time {
+  display: none;
+}
+.program-cell.is-small .program-title {
+  white-space: normal;
+  -webkit-line-clamp: 2;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+}
+

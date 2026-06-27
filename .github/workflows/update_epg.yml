@@ -1,0 +1,62 @@
+name: Process and Publish EPG
+
+on:
+  schedule:
+    # Runs at 08:00 UTC every day
+    - cron: '0 8 * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub UI
+  push:
+    paths:
+      - 'my_epg.xml' # Trigger automatically if the user uploads a new file
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  process-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install sax
+
+      - name: Process EPG
+        run: |
+          mkdir -p public/epg_data
+          # If an external URL is provided via GitHub Secrets, download it
+          if [ -n "$EPG_URL" ]; then
+            echo "Downloading EPG from $EPG_URL..."
+            curl -L -o my_epg.xml "$EPG_URL"
+          fi
+          
+          # Run the parsing script
+          node scripts/process_epg.js
+        env:
+          EPG_URL: ${{ secrets.EPG_URL }}
+          OUTPUT_DIR: public/epg_data
+          EPG_FILE: my_epg.xml
+
+      - name: Upload artifact for GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public/epg_data
+
+  deploy:
+    needs: process-and-publish
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
