@@ -22,7 +22,12 @@ epgDb.version(3).stores({
 epgDb.version(4).stores({
   programs: 'id, channel_id, start_timestamp, stop_timestamp, [channel_id+start_timestamp]'
 }).upgrade(tx => {
-  // Clear all programs again to recover from interrupted/corrupted bulkPut operations
+  return tx.table('programs').clear();
+});
+epgDb.version(5).stores({
+  programs: 'id, channel_id, start_timestamp, stop_timestamp, [channel_id+start_timestamp]'
+}).upgrade(tx => {
+  // Clear all programs again to fix the c.id vs c.stream_id mismatch bug
   return tx.table('programs').clear();
 });
 

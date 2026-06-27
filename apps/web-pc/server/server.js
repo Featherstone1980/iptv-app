@@ -1283,9 +1283,10 @@ app.post('/api/custom-epg/bulk', express.json({ limit: '50mb' }), async (req, re
       }
     }
 
+    const outId = c.stream_id || c.id;
     if (matchedChannelId && epgData.programsByChannel && epgData.programsByChannel[matchedChannelId]) {
       const rawPrograms = epgData.programsByChannel[matchedChannelId];
-      result[c.id] = rawPrograms.map(p => {
+      result[outId] = rawPrograms.map(p => {
         // Programs from epgWorker are already pre-parsed:
         // { title, desc, start_str, stop_str, start_ts, stop_ts }
         const title = String(p.title || 'Unknown Program');
@@ -1294,20 +1295,20 @@ app.post('/api/custom-epg/bulk', express.json({ limit: '50mb' }), async (req, re
         const stopTs = p.stop_ts || 0;
 
         return {
-          id: `custom_${c.id}_${startTs}`,  // include channel id to prevent Dexie key collisions
+          id: `custom_${outId}_${startTs}`,  // include channel id to prevent Dexie key collisions
           epg_id: matchedChannelId,
           title: title,
           lang: "",
           start: p.start_str || '',
           end: p.stop_str || '',
           description: desc,
-          channel_id: String(c.id),          // always use stream_id so Dexie lookup matches
+          channel_id: String(outId),          // always use stream_id so Dexie lookup matches
           start_timestamp: startTs.toString(),
           stop_timestamp: stopTs.toString()
         };
       });
     } else {
-      result[c.id] = [];
+      result[outId] = [];
     }
   }
 
