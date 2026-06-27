@@ -203,9 +203,10 @@ let globalEpgIndex = null;
 let globalDisplayNames = null;
 
 export const getCustomEpgBulk = async (channels) => {
-    // By default, use the GitHub Pages CDN for all clients
-    const USE_LOCAL = import.meta.env.VITE_USE_LOCAL_EPG === 'true';
-    const GITHUB_PAGES_URL = USE_LOCAL ? null : "https://Featherstone1980.github.io/iptv-app";
+    // We are running the EPG worker locally on the desktop app backend.
+    // Force the app to fetch from our local backend proxy instead of the remote CDN.
+    const USE_LOCAL = true;
+    const GITHUB_PAGES_URL = null;
 
     if (GITHUB_PAGES_URL) {
       try {
