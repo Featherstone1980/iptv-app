@@ -543,8 +543,8 @@ export const useAppStore = create((set, get) => ({
       const foundIds = new Set();
       
       const USE_LOCAL = true; // Hardcoded to use our local Node.js proxy instead of remote CDN
-      // Chunk size of 100 prevents locking the UI thread during JSON parsing & IndexedDB bulkPut
-      const batchSize = 100; 
+      // Increase batch size to 1000 channels to dramatically reduce HTTP request overhead (20 requests instead of 200)
+      const batchSize = 1000; 
       
       set({ epgLoadingProgress: 0 }); // Show progress bar instantly
       for (let i = 0; i < remainingChannels.length; i += batchSize) {
@@ -554,8 +554,6 @@ export const useAppStore = create((set, get) => ({
         let bulkRes = await getCustomEpgBulk(chunk);
         
         let retryCount = 0;
-        // ONLY wait if the backend hasn't even emitted the first batch yet.
-        // Once the first batch arrives, bulkRes.epg_listings will be populated, and we can proceed!
         while (bulkRes && bulkRes.status === 'downloading_in_background' && (!bulkRes.epg_listings || Object.keys(bulkRes.epg_listings).length === 0) && retryCount < 12) {
           console.log("[EPG] Waiting for first batch of custom EPG...");
           set({ epgLoadingProgress: -1 }); // Signal UI that we are waiting for backend
@@ -577,20 +575,8 @@ export const useAppStore = create((set, get) => ({
                 let decodedTitle = prog.title || '';
                 let decodedDesc = prog.description || '';
                 
-                const decodeB64 = (str) => {
-                  try {
-                    if (!str) return '';
-                    if (str.length % 4 === 0 && /^[A-Za-z0-9+/]+={0,2}$/.test(str.trim())) {
-                       return decodeURIComponent(Array.prototype.map.call(atob(str.trim()), function(c) {
-                           return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-                       }).join(''));
-                    }
-                    return str;
-                  } catch (e) { return str; }
-                };
-
-                decodedTitle = decodeB64(decodedTitle);
-                decodedDesc = decodeB64(decodedDesc);
+                // We no longer need decodeB64 because our local proxy serves plain strings!
+                // Eliminating 1.5 million regex checks speeds up the loop massively.
                 
                 programsToSave.push({
                    id: prog.id || `prog_${startTs}_${pIndex}`,
@@ -606,14 +592,19 @@ export const useAppStore = create((set, get) => ({
           }
           
           if (programsToSave.length > 0) {
-             await epgDb.programs.bulkPut(programsToSave).catch(e => console.error("Dexie bulkPut error:", e));
+             // Chunk Dexie inserts into batches of 10,000 to prevent crashing the browser engine
+             const DB_CHUNK_SIZE = 10000;
+             for (let j = 0; j < programsToSave.length; j += DB_CHUNK_SIZE) {
+               const dbChunk = programsToSave.slice(j, j + DB_CHUNK_SIZE);
+               await epgDb.programs.bulkPut(dbChunk).catch(e => console.error("Dexie bulkPut error:", e));
+               await new Promise(r => requestAnimationFrame(r)); // Yield to UI to keep progress bar spinning smoothly
+             }
           }
         }
         
-        set({ epgLoadingProgress: Math.round(((i + chunk.length) / remainingChannels.length) * 50) });
+        let currentProgress = Math.round(((i + chunk.length) / remainingChannels.length) * 50);
+        set({ epgLoadingProgress: currentProgress === 0 ? 1 : currentProgress }); // Ensure it doesn't look stuck at 0
         
-        // ALWAYS yield to the main thread! 
-        // 200ms delay was for DDoS protection against remote CDN. Since we use local proxy, requestAnimationFrame is all we need to keep UI smooth!
         await new Promise(r => requestAnimationFrame(r));
       }
       
