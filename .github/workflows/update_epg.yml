@@ -8,6 +8,7 @@ on:
   push:
     paths:
       - 'my_epg.xml' # Trigger automatically if the user uploads a new file
+      - 'apps/epg-editor/server/manual_overrides.json' # Trigger when custom mapping information is updated
 
 permissions:
   contents: write

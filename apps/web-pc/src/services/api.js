@@ -224,7 +224,7 @@ export const getCustomEpgBulk = async (channels) => {
         // 2. Fetch Index
         if (!globalEpgIndex) {
           try {
-            const idxRes = await fetch(`${GITHUB_PAGES_URL}/epg_data/index.json`);
+            const idxRes = await fetch(`${GITHUB_PAGES_URL}/epg_data/index.json?t=${Date.now()}`);
             if (idxRes.ok) {
               globalEpgIndex = await idxRes.json();
             } else {
@@ -238,7 +238,7 @@ export const getCustomEpgBulk = async (channels) => {
         // 3. Fetch Display Names
         if (!globalDisplayNames) {
           try {
-            const dispRes = await fetch(`${GITHUB_PAGES_URL}/epg_data/display_names.json`);
+            const dispRes = await fetch(`${GITHUB_PAGES_URL}/epg_data/display_names.json?t=${Date.now()}`);
             if (dispRes.ok) {
               globalDisplayNames = await dispRes.json();
             } else {
@@ -311,26 +311,26 @@ export const getCustomEpgBulk = async (channels) => {
               if (!chId) {
                 chId = ch.epg_channel_id || ch.stream_id || ch.id;
               }
-              
-              console.log(`[EPG] Channel: ${ch.name} -> mapped to file: ${chId}.json`);
-              try {
-              const res = await fetch(`${GITHUB_PAGES_URL}/epg_data/${encodeURIComponent(chId)}.json`);
-              if (res.ok) {
-                const data = await res.json();
-                // Data from our script has start_ts, stop_ts. We map it back to what the frontend expects
-                epg_listings[chId] = data.map(p => ({
-                   ...p,
-                   start_timestamp: p.start_ts / 1000,
-                   stop_timestamp: p.stop_ts / 1000,
-                   start: new Date(p.start_ts).toISOString(),
-                   end: new Date(p.stop_ts).toISOString()
-                }));
+              if (chId) {
+                try {
+                  const res = await fetch(`${GITHUB_PAGES_URL}/epg_data/${encodeURIComponent(chId)}.json?t=${Date.now()}`);
+                  if (res.ok) {
+                    const data = await res.json();
+                    epg_listings[ch.stream_id] = data.map(p => ({
+                       ...p,
+                       start_timestamp: p.start_ts / 1000,
+                       stop_timestamp: p.stop_ts / 1000,
+                       start: new Date(p.start_ts).toISOString(),
+                       end: new Date(p.stop_ts).toISOString()
+                    }));
+                  } else {
+                  }
+                } catch(e) {
+                  epg_listings[ch.stream_id] = [];
+                }
               } else {
-                epg_listings[chId] = [];
+                epg_listings[ch.stream_id] = [];
               }
-            } catch(e) {
-              epg_listings[chId] = [];
-            }
           }));
         }
         return { status: 'success', epg_listings };
