@@ -170,3 +170,7 @@
 - **Modified** pps/web-pc/src/components/epg/EPGGrid.jsx: Implemented virtual chunking on vertical scroll (loading chunks of 50 channels) and refactored Row component to use dexie-react-hooks LiveQuery for querying programs directly from IndexedDB.
 - **Modified** pps/web-pc/src/components/themes/ModernTheme/ModernTheme.jsx: Added React.startTransition to category switches to guarantee unblocked sidebar responsiveness.
 - **Modified** pps/web-pc/main.js: Fixed IPC cache reader to point to epg_cache.json to reflect new EPG worker output.
+# #   [ U n r e l e a s e d ]  
+ -   * * P e r f o r m a n c e * * :   R e d e s i g n e d   E P G   b a c k g r o u n d   p i p e l i n e   t o   y i e l d   t o   t h e   U I   t h r e a d ,   e l i m i n a t i n g   U I   f r e e z i n g   d u r i n g   m a s s i v e   s y n c s .   R e d u c e d   b u l k   A P I   b a t c h   s i z e   f r o m   1 0 0 0   t o   1 0 0   a n d   i n t r o d u c e d   a   1 0 0 m s   y i e l d   a f t e r   D e x i e   b u l k P u t s   ( \ u s e A p p S t o r e . j s \ ) .  
+ -   * * P e r f o r m a n c e * * :   C o m p l e t e l y   e l i m i n a t e d   h e a v y   o b j e c t   a l l o c a t i o n s   i n   t h e   \ j a c c a r d S i m \   a l g o r i t h m   a n d   a d d e d   a n   e x a c t - m a t c h   f a s t - p a t h   f o r   E P G   c h a n n e l   m a t c h i n g ,   d r a m a t i c a l l y   r e d u c i n g   C P U   o v e r h e a d   ( \ s e r v e r . j s \ ) .  
+ 
