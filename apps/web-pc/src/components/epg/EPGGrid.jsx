@@ -384,7 +384,7 @@ const EPGGrid = ({ channels, epgData = {}, onPlay, categorySelector, onHoverChan
   };
 
   return (
-    <div className="epg-wrapper">
+    <div className="epg-wrapper" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
       
       <div className="epg-details-panel">
         {focusedItem ? (

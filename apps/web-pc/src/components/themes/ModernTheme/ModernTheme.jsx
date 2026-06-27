@@ -304,7 +304,7 @@ const ModernTheme = ({ userData }) => {
 
       return (
         <div className="content-container animate-fade-in flex-col h-full w-full">
-          <div className="epg-section flex-grow" style={{ paddingLeft: '80px', paddingRight: '2rem', paddingBottom: '2rem', paddingTop: '2rem', boxSizing: 'border-box', height: '100%' }}>
+          <div className="epg-section flex-grow" style={{ display: 'flex', flexDirection: 'column', paddingLeft: '80px', paddingRight: '2rem', paddingBottom: '2rem', paddingTop: '2rem', boxSizing: 'border-box', height: '100%' }}>
             {liveChannels.length > 0 ? (
               <>
               {activeTab === 'live' && activeLiveCategoryId === 'favorites' && filteredLiveChannels.length > 0 && userData?.activeProfile?.hasSeenDragDropHint !== true && (

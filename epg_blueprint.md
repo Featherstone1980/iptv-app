@@ -42,3 +42,9 @@ Because the background micro-batching takes about ~30-60 seconds to finish all 9
 - If a channel is visible on screen but its data hasn't arrived yet, the cache stores an "empty" array for it.
 - A useEffect hook in EPGGrid.jsx actively listens to the epgLoadingProgress state. 
 - Every time a new micro-batch finishes (progress increments), the UI aggressively scans the visible rows. If any row has an "empty" cache, it invalidates it, forcing it to immediately re-query IndexedDB to display the newly arrived data without waiting for a scroll event.
+
+## 4. Frontend Bottlenecks & Fixes
+
+To achieve an 11-second EPG sync for 9,000 channels, the frontend had to be strictly decoupled from fallback logic and artificial delays:
+- **No Artificial Staggers**: Previous versions staggered IndexedDB inserts by 200ms per batch. This is fully removed. The system yields to the UI thread for exactly 20ms between ulkPut calls to keep the renderer fluid, reducing dead time from 20+ seconds down to less than 2 seconds total.
+- **Provider Fallback Bypass**: If the system detects a custom EPG is actively being used (oundIds.size > 0), it will **abort** the secondary provider fallback loop for unmatched channels. Hitting the fallback provider API for thousands of unmatched channels takes 20+ minutes and risks triggering DDoS protections from the provider.
