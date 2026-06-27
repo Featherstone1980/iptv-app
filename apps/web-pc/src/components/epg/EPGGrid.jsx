@@ -102,27 +102,34 @@ const EPGGrid = ({ channels, epgData = {}, onPlay, categorySelector, onHoverChan
   const endIndex = Math.min(Math.max(0, channels.length - 1), Math.floor((scrollTop + VIEWPORT_HEIGHT) / ROW_HEIGHT) + BUFFER_ROWS);
   const visibleChannels = channels.slice(startIndex, endIndex + 1);
 
-  // Debounce the visible channels so we don't spam IndexedDB during fast scrolls
-  const [debouncedVisibleChannels, setDebouncedVisibleChannels] = useState(visibleChannels);
+  // Eagerly query Dexie for a massive window of channels (100 rows ahead and behind)
+  // so the memory cache always stays ahead of the user's aggressive scrolling.
+  const PRELOAD_BUFFER = 100;
+  const preloadStartIndex = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - PRELOAD_BUFFER);
+  const preloadEndIndex = Math.min(Math.max(0, channels.length - 1), Math.floor((scrollTop + VIEWPORT_HEIGHT) / ROW_HEIGHT) + PRELOAD_BUFFER);
+  const preloadChannels = channels.slice(preloadStartIndex, preloadEndIndex + 1);
+
+  // Debounce the preload query so we don't spam IndexedDB during fast scrolls
+  const [debouncedPreloadChannels, setDebouncedPreloadChannels] = useState(preloadChannels);
   useEffect(() => {
     const timer = setTimeout(() => {
-      setDebouncedVisibleChannels(visibleChannels);
+      setDebouncedPreloadChannels(preloadChannels);
     }, 30);
     return () => clearTimeout(timer);
-  }, [startIndex, endIndex, channels]); // Re-run when visible window or channels change
+  }, [preloadStartIndex, preloadEndIndex, channels]); // Re-run when preload window or channels change
 
   // SINGLE Dexie subscription for VISIBLE channels (prevents OOM and DB crashes).
   // Build a keyed Map<channelId, program[]> once and pass it down to rows as a prop.
   // We query by BOTH stream_id AND epg_channel_id so we catch programs stored under either key.
   const channelQueryIds = useMemo(() => {
     const ids = new Set();
-    debouncedVisibleChannels.forEach(c => {
+    debouncedPreloadChannels.forEach(c => {
       if (c.stream_id) ids.add(String(c.stream_id));
       if (c.id) ids.add(String(c.id));
       if (c.epg_channel_id) ids.add(String(c.epg_channel_id));
     });
     return Array.from(ids);
-  }, [debouncedVisibleChannels]);
+  }, [debouncedPreloadChannels]);
 
   // Use the joined string as the stable dep key — re-queries whenever channel IDs actually change.
   // We use a ref to do content-equality so a new channels array reference (from a parent re-render)
