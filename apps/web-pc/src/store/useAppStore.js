@@ -860,18 +860,13 @@ if (typeof window !== 'undefined') {
     try {
       const data = JSON.parse(event.data);
       if (data.event === 'epg_updated') {
-        console.log('[EPG Hot-Reload] Backend parsed new EPG data! Wiping local state and fetching...');
-        useAppStore.setState({ epgData: {}, epgLoadingProgress: 0 });
-
-        if (typeof window !== 'undefined' && window.require) {
-          const { ipcRenderer } = window.require('electron');
-          ipcRenderer.invoke('clear-epg-cache').catch(()=>null);
-        }
-
-        const state = useAppStore.getState();
-        if (state.activeLiveCategoryId) {
-          state.fetchLiveStreams(state.activeLiveCategoryId);
-        }
+        console.log('[EPG Hot-Reload] Backend parsed new EPG data! Running additive sync in background...');
+        useAppStore.setState({ epgLoadingProgress: 0 }); // Just show the progress bar, do not wipe epgData
+        
+        // Seamlessly fetch new data without deleting the existing database.
+        // bulkPut will gracefully overwrite updated programs by ID.
+        // Old programs are automatically pruned by purgeStaleEpgPrograms().
+        useAppStore.getState().fetchEpgAdditive();
       }
     } catch (e) {
       console.error('EPG SSE error:', e);
