@@ -538,6 +538,15 @@ export const useAppStore = create((set, get) => ({
         
         let bulkRes = await getCustomEpgBulk(chunk);
         
+        let retryCount = 0;
+        while (bulkRes && bulkRes.status === 'downloading_in_background' && retryCount < 12) {
+          console.log("[EPG] Backend is parsing XMLTV files. Waiting 5 seconds...");
+          set({ epgLoadingProgress: -1 }); // Signal UI that we are waiting for backend
+          await new Promise(r => setTimeout(r, 5000));
+          bulkRes = await getCustomEpgBulk(chunk);
+          retryCount++;
+        }
+        
         let programsToSave = [];
         if (bulkRes && bulkRes.epg_listings && Object.keys(bulkRes.epg_listings).length > 0) {
           for (const [chId, progs] of Object.entries(bulkRes.epg_listings)) {
