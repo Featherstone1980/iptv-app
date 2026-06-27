@@ -1,24 +1,25 @@
-
 const fs = require('fs');
 const path = require('path');
 const sax = require('sax');
 
 // Configuration
 const EPG_FILE = process.env.EPG_FILE || 'my_epg.xml';
-const OUTPUT_DIR = process.env.OUTPUT_DIR || path.join(__dirname, '..', 'epg_data');
+const OUTPUT_DIR = process.env.OUTPUT_DIR || path.join(__dirname, '..', 'public', 'epg_data');
 
 if (!fs.existsSync(OUTPUT_DIR)) {
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 }
 
-console.log(\Processing \ into \...\);
+console.log(`Processing ${EPG_FILE} into ${OUTPUT_DIR}...`);
 
 const stream = fs.createReadStream(EPG_FILE, { encoding: 'utf8' });
 const parser = sax.createStream(true, { trim: true });
 
 let currentTag = null;
 let currentProgram = null;
+let currentChannelId = null;
 const channelsEpg = {}; 
+const displayNamesMap = {};
 
 const encodeBase64 = (str) => {
   return Buffer.from(str || '').toString('base64');
@@ -26,7 +27,7 @@ const encodeBase64 = (str) => {
 
 const flushChannel = (channelId) => {
   if (channelsEpg[channelId]) {
-    const file = path.join(OUTPUT_DIR, \\.json\);
+    const file = path.join(OUTPUT_DIR, `${channelId}.json`);
     let existing = [];
     if (fs.existsSync(file)) {
       try {
@@ -43,7 +44,9 @@ let programCount = 0;
 
 parser.on('opentag', (node) => {
   currentTag = node.name;
-  if (node.name === 'programme') {
+  if (node.name === 'channel') {
+    currentChannelId = node.attributes.id;
+  } else if (node.name === 'programme') {
     currentProgram = {
       channel: node.attributes.channel,
       start: node.attributes.start,
@@ -57,7 +60,15 @@ parser.on('opentag', (node) => {
   }
 });
 
+parser.on('closetag', (tagName) => {
+  currentTag = null;
+});
+
 parser.on('text', (text) => {
+  const trimmed = text.trim();
+  if (currentTag === 'display-name' && currentChannelId && trimmed) {
+    displayNamesMap[trimmed] = currentChannelId;
+  }
   if (!currentProgram) return;
   if (currentTag === 'title') {
     currentProgram.title += text;
@@ -112,7 +123,18 @@ parser.on('end', () => {
   
   // Create an index file (optional but helpful)
   const files = fs.readdirSync(OUTPUT_DIR).filter(f => f.endsWith('.json'));
-  console.log(\Successfully processed \ programs into \ channel files.\);
+  const channelNames = files.map(f => f.replace('.json', ''));
+  fs.writeFileSync(path.join(OUTPUT_DIR, 'index.json'), JSON.stringify(channelNames));
+  fs.writeFileSync(path.join(OUTPUT_DIR, 'display_names.json'), JSON.stringify(displayNamesMap));
+  
+  // Copy manual_overrides.json if it exists
+  const overridesPath = path.join(__dirname, '../apps/epg-editor/server/manual_overrides.json');
+  if (fs.existsSync(overridesPath)) {
+    fs.copyFileSync(overridesPath, path.join(OUTPUT_DIR, 'manual_overrides.json'));
+    console.log('Copied manual_overrides.json to output directory.');
+  }
+
+  console.log(`Successfully processed ${programCount} programs into ${files.length} channel files.`);
 });
 
 parser.on('error', (err) => {

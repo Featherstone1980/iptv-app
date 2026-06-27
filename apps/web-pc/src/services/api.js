@@ -198,22 +198,123 @@ export const getCustomEpg = async (channelName, epgId) => {
   }
 };
 
+let globalEpgOverrides = null;
+let globalEpgIndex = null;
+let globalDisplayNames = null;
+
 export const getCustomEpgBulk = async (channels) => {
-    // If you are using GitHub Pages, put your URL here, e.g. "https://YOUR_USERNAME.github.io/YOUR_REPO"
-    // Leave it blank to use the local node server
     const GITHUB_PAGES_URL = "https://Featherstone1980.github.io/iptv-app"; 
 
     if (GITHUB_PAGES_URL) {
       try {
+        // 1. Fetch Overrides
+        if (!globalEpgOverrides) {
+          try {
+            const overRes = await fetch(`${GITHUB_PAGES_URL}/epg_data/manual_overrides.json`);
+            if (overRes.ok) {
+              globalEpgOverrides = await overRes.json();
+            } else {
+              globalEpgOverrides = {};
+            }
+          } catch(e) {
+            globalEpgOverrides = {};
+          }
+        }
+        
+        // 2. Fetch Index
+        if (!globalEpgIndex) {
+          try {
+            const idxRes = await fetch(`${GITHUB_PAGES_URL}/epg_data/index.json`);
+            if (idxRes.ok) {
+              globalEpgIndex = await idxRes.json();
+            } else {
+              globalEpgIndex = [];
+            }
+          } catch(e) {
+            globalEpgIndex = [];
+          }
+        }
+        
+        // 3. Fetch Display Names
+        if (!globalDisplayNames) {
+          try {
+            const dispRes = await fetch(`${GITHUB_PAGES_URL}/epg_data/display_names.json`);
+            if (dispRes.ok) {
+              globalDisplayNames = await dispRes.json();
+            } else {
+              globalDisplayNames = {};
+            }
+          } catch(e) {
+            globalDisplayNames = {};
+          }
+        }
+
+        // Build case-insensitive maps
+        const caseInsensitiveIndex = {};
+        if (globalEpgIndex) {
+          globalEpgIndex.forEach(f => {
+            caseInsensitiveIndex[f.toLowerCase().trim()] = f;
+          });
+        }
+        
+        const caseInsensitiveDisplayNames = {};
+        if (globalDisplayNames) {
+          Object.entries(globalDisplayNames).forEach(([name, id]) => {
+            caseInsensitiveDisplayNames[name.toLowerCase().trim()] = id;
+          });
+        }
+        
         const epg_listings = {};
         const batchSize = 25; // Fetch 25 channels at a time
         
         for (let i = 0; i < channels.length; i += batchSize) {
           const batch = channels.slice(i, i + batchSize);
           await Promise.all(batch.map(async (ch) => {
-            const chId = ch.stream_id || ch.id;
-            try {
-              const res = await fetch(`${GITHUB_PAGES_URL}/${chId}.json`);
+              let chId = null;
+              const chNameLower = (ch.name || "").toLowerCase().trim();
+              
+              // 1. Try Manual Override (Case-insensitive check against actual files)
+              if (globalEpgOverrides && globalEpgOverrides[ch.name]) {
+                const override = globalEpgOverrides[ch.name];
+                const lowerOverride = override.toLowerCase().trim();
+                if (caseInsensitiveIndex[lowerOverride]) {
+                  chId = caseInsensitiveIndex[lowerOverride];
+                }
+              }
+              
+              // 2. Try XML Display Name exactly matching Provider Channel Name
+              if (!chId && chNameLower && caseInsensitiveDisplayNames[chNameLower]) {
+                const mappedId = caseInsensitiveDisplayNames[chNameLower];
+                const lowerMapped = mappedId.toLowerCase().trim();
+                if (caseInsensitiveIndex[lowerMapped]) {
+                  chId = caseInsensitiveIndex[lowerMapped];
+                }
+              }
+              
+              // 3. Try epg_channel_id (Case-insensitive check against actual files)
+              if (!chId && ch.epg_channel_id) {
+                const lowerEpgId = ch.epg_channel_id.toLowerCase().trim();
+                if (caseInsensitiveIndex[lowerEpgId]) {
+                  chId = caseInsensitiveIndex[lowerEpgId];
+                }
+              }
+
+              // 4. Try stream_id with 'channel_' prefix (Common in custom generated XMLs)
+              if (!chId && ch.stream_id) {
+                const prefixedId = `channel_${ch.stream_id}`.toLowerCase();
+                if (caseInsensitiveIndex[prefixedId]) {
+                  chId = caseInsensitiveIndex[prefixedId];
+                }
+              }
+
+              // 5. Ultimate Fallback (will probably 404 but try anyway)
+              if (!chId) {
+                chId = ch.epg_channel_id || ch.stream_id || ch.id;
+              }
+              
+              console.log(`[EPG] Channel: ${ch.name} -> mapped to file: ${chId}.json`);
+              try {
+              const res = await fetch(`${GITHUB_PAGES_URL}/epg_data/${encodeURIComponent(chId)}.json`);
               if (res.ok) {
                 const data = await res.json();
                 // Data from our script has start_ts, stop_ts. We map it back to what the frontend expects
