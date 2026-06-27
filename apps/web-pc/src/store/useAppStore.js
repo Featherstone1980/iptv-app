@@ -514,9 +514,22 @@ export const useAppStore = create((set, get) => ({
         }
       }
 
+      // 1.5 Check Dexie database to see which channels we ALREADY have EPG for!
+      // This is critical to prevent re-processing 700,000+ programs every single time the app opens.
+      let existingDexieIds = new Set();
+      try {
+        const { epgDb } = await import('../db/epgDatabase');
+        const keys = await epgDb.programs.orderBy('channel_id').uniqueKeys();
+        existingDexieIds = new Set(keys);
+      } catch (e) {
+        console.error("Failed to read existing Dexie keys", e);
+      }
+
       let remainingChannels = channels.filter(c => {
-        const cId = c.stream_id || c.id;
-        return !get().epgData[cId] || get().epgData[cId].length === 0;
+        const cId = String(c.stream_id || c.id);
+        const inMemory = get().epgData[cId] && get().epgData[cId].length > 0;
+        const inDb = existingDexieIds.has(cId);
+        return !inMemory && !inDb;
       });
       
       if (remainingChannels.length === 0) {
