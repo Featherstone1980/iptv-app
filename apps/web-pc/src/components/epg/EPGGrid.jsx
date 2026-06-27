@@ -73,6 +73,7 @@ const ProgramCell = React.memo(({ program, renderStart, renderEnd, timelineStart
 });
 
 const EPGGrid = ({ channels, epgData = {}, onPlay, categorySelector, onHoverChannel, enableCatchup = true, timeFormat = '12h', isFavoritesCategory, onReorderFavorites, enableMultiView = true, showEpgNowLine = true, showEpgProgressFill = true, showEpgLiveDot = true, epgNowLineColor = '', epgProgressFillColor = '' }) => {
+  console.time('EPGGrid-Mount');
   const loadMoreLiveChannels = useAppStore(state => state.loadMoreLiveChannels);
   const gridRef = useRef(null);
   const channelColRef = useRef(null);
@@ -147,14 +148,19 @@ const EPGGrid = ({ channels, epgData = {}, onPlay, categorySelector, onHoverChan
 
   // Continually clear empty cache entries for visible channels as background sync progresses
   const epgLoadingProgress = useAppStore(state => state.epgLoadingProgress);
+  const prevProgressRef = useRef(-1);
   useEffect(() => {
-    if (epgLoadingProgress > 0) {
-      if (epgLoadingProgress === 100) {
-        epgCacheRef.current.clear();
-        setCacheVersion(v => v + 1);
-      } else {
-        // While syncing, check if any currently visible channels have an empty cache.
-        // If they do, delete them from the cache so the fetch effect will re-query Dexie!
+    if (epgLoadingProgress === 100 && prevProgressRef.current !== 100) {
+      epgCacheRef.current.clear();
+      setCacheVersion(v => v + 1);
+    }
+    prevProgressRef.current = epgLoadingProgress;
+  }, [epgLoadingProgress]);
+
+  // 2. React to background sync in progress to clear empty stubs
+  useEffect(() => {
+    if (epgLoadingProgress > 0 && epgLoadingProgress < 100) {
+      if (channelIdsKey) {
         const ids = channelIdsKey.split(',').filter(Boolean);
         let changed = false;
         for (const id of ids) {
@@ -383,6 +389,7 @@ const EPGGrid = ({ channels, epgData = {}, onPlay, categorySelector, onHoverChan
     return calculateLeft(currentTime, timeline[0]);
   };
 
+  console.timeEnd('EPGGrid-Mount');
   return (
     <div className="epg-wrapper" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
       
