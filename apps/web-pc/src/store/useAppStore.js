@@ -533,6 +533,7 @@ export const useAppStore = create((set, get) => ({
       // Reduce local chunk size from 500 to 100 to prevent locking the UI thread during JSON parsing & IndexedDB bulkPut
       const batchSize = USE_LOCAL ? 100 : 25; 
       
+      set({ epgLoadingProgress: 0 }); // Show progress bar instantly
       for (let i = 0; i < remainingChannels.length; i += batchSize) {
         if (abortSignal.aborted) break;
         const chunk = remainingChannels.slice(i, i + batchSize);
