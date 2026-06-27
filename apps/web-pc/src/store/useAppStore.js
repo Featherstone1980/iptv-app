@@ -626,11 +626,18 @@ export const useAppStore = create((set, get) => ({
                 const startTs = rawStart ? (rawStart > 1e11 ? rawStart : rawStart * 1000) : new Date(prog.start || prog.start_str || 0).getTime();
                 const stopTs = rawStop ? (rawStop > 1e11 ? rawStop : rawStop * 1000) : new Date(prog.end || prog.stop_str || 0).getTime();
                 
+                let decodedTitle = prog.title || '';
+                let decodedDesc = prog.description || '';
+                try {
+                  if (typeof decodedTitle === 'string' && decodedTitle.match(/^[A-Za-z0-9+/]+={0,2}$/)) decodedTitle = atob(decodedTitle);
+                  if (typeof decodedDesc === 'string' && decodedDesc.match(/^[A-Za-z0-9+/]+={0,2}$/)) decodedDesc = atob(decodedDesc);
+                } catch(e) {}
+                
                 return {
                   id: prog.id || `prog_${startTs}_${pIndex}`,
                   channel_id: cId,
-                  title: decodeBase64(prog.title),
-                  description: decodeBase64(prog.description),
+                  title: decodedTitle,
+                  description: decodedDesc,
                   start_timestamp: startTs + epgOffsetMs,
                   stop_timestamp: stopTs + epgOffsetMs
                 };

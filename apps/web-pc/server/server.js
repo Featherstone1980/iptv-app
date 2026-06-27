@@ -1379,11 +1379,11 @@ app.get('/api/custom-epg', async (req, res) => {
     return {
       id: `custom_${startTs}`,
       epg_id: matchedChannelId,
-      title: Buffer.from(title).toString('base64'),
+      title: title,
       lang: "",
       start: p.start_str || '',
       end: p.stop_str || '',
-      description: Buffer.from(desc).toString('base64'),
+      description: desc,
       channel_id: matchedChannelId,
       start_timestamp: startTs.toString(),
       stop_timestamp: stopTs.toString()
