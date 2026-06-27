@@ -17,7 +17,12 @@ epgDb.version(2).stores({
 epgDb.version(3).stores({
   programs: 'id, channel_id, start_timestamp, stop_timestamp, [channel_id+start_timestamp]'
 }).upgrade(tx => {
-  // Clear all programs to flush out cached base64/gibberish text from previous bugs
+  return tx.table('programs').clear();
+});
+epgDb.version(4).stores({
+  programs: 'id, channel_id, start_timestamp, stop_timestamp, [channel_id+start_timestamp]'
+}).upgrade(tx => {
+  // Clear all programs again to recover from interrupted/corrupted bulkPut operations
   return tx.table('programs').clear();
 });
 
