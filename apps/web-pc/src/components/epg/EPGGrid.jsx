@@ -107,7 +107,7 @@ const EPGGrid = ({ channels, epgData = {}, onPlay, categorySelector, onHoverChan
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedVisibleChannels(visibleChannels);
-    }, 150);
+    }, 30);
     return () => clearTimeout(timer);
   }, [startIndex, endIndex, channels]); // Re-run when visible window or channels change
 
@@ -310,13 +310,19 @@ const EPGGrid = ({ channels, epgData = {}, onPlay, categorySelector, onHoverChan
   const handleScroll = useCallback((e) => {
     if (!e || !e.target) return;
     if (scrollRafRef.current) return;
-    const { scrollTop: newScrollTop, scrollLeft } = e.target;
+    
+    // Read layout properties BEFORE rAF to avoid layout thrashing
+    const newScrollTop = e.target.scrollTop;
+    const scrollLeft = e.target.scrollLeft;
+    const scrollHeight = e.target.scrollHeight;
+    const clientHeight = e.target.clientHeight;
+    
     scrollRafRef.current = requestAnimationFrame(() => {
         scrollRafRef.current = null;
         setScrollTop(newScrollTop);
         
-        if (e.target.scrollHeight - newScrollTop - e.target.clientHeight < 1000) {
-           loadMoreLiveChannels();
+        if (scrollHeight - newScrollTop - clientHeight < 1000) {
+           if (typeof loadMoreLiveChannels === 'function') loadMoreLiveChannels();
         }
       setScrollLeftState(prev => {
         if (Math.abs(scrollLeft - prev) > 5) return scrollLeft;
