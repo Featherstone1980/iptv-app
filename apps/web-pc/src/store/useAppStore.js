@@ -564,6 +564,21 @@ export const useAppStore = create((set, get) => ({
                 let decodedTitle = prog.title || '';
                 let decodedDesc = prog.description || '';
                 
+                const decodeB64 = (str) => {
+                  try {
+                    if (!str) return '';
+                    if (str.length % 4 === 0 && /^[A-Za-z0-9+/]+={0,2}$/.test(str.trim())) {
+                       return decodeURIComponent(Array.prototype.map.call(atob(str.trim()), function(c) {
+                           return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                       }).join(''));
+                    }
+                    return str;
+                  } catch (e) { return str; }
+                };
+
+                decodedTitle = decodeB64(decodedTitle);
+                decodedDesc = decodeB64(decodedDesc);
+                
                 programsToSave.push({
                    id: prog.id || `prog_${startTs}_${pIndex}`,
                    channel_id: String(chId),
@@ -629,10 +644,21 @@ export const useAppStore = create((set, get) => ({
                 
                 let decodedTitle = prog.title || '';
                 let decodedDesc = prog.description || '';
-                try {
-                  if (typeof decodedTitle === 'string' && decodedTitle.match(/^[A-Za-z0-9+/]+={0,2}$/)) decodedTitle = atob(decodedTitle);
-                  if (typeof decodedDesc === 'string' && decodedDesc.match(/^[A-Za-z0-9+/]+={0,2}$/)) decodedDesc = atob(decodedDesc);
-                } catch(e) {}
+                
+                const decodeB64 = (str) => {
+                  try {
+                    if (!str) return '';
+                    if (str.length % 4 === 0 && /^[A-Za-z0-9+/]+={0,2}$/.test(str.trim())) {
+                       return decodeURIComponent(Array.prototype.map.call(atob(str.trim()), function(c) {
+                           return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                       }).join(''));
+                    }
+                    return str;
+                  } catch (e) { return str; }
+                };
+
+                decodedTitle = decodeB64(decodedTitle);
+                decodedDesc = decodeB64(decodedDesc);
                 
                 return {
                   id: prog.id || `prog_${startTs}_${pIndex}`,
