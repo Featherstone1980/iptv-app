@@ -604,7 +604,7 @@ export const useAppStore = create((set, get) => ({
           }
         }
         
-        let currentProgress = Math.round(((i + chunk.length) / remainingChannels.length) * 50);
+        let currentProgress = Math.round(((i + chunk.length) / remainingChannels.length) * 100);
         set({ epgLoadingProgress: currentProgress === 0 ? 1 : currentProgress });
         
         await new Promise(r => setTimeout(r, 10)); // Local backend is blazing fast now, only 10ms stagger needed!
