@@ -562,10 +562,6 @@ export const useAppStore = create((set, get) => ({
                 
                 let decodedTitle = prog.title || '';
                 let decodedDesc = prog.description || '';
-                try {
-                  if (typeof decodedTitle === 'string' && decodedTitle.match(/^[A-Za-z0-9+/]+={0,2}$/)) decodedTitle = atob(decodedTitle);
-                  if (typeof decodedDesc === 'string' && decodedDesc.match(/^[A-Za-z0-9+/]+={0,2}$/)) decodedDesc = atob(decodedDesc);
-                } catch(e) {}
                 
                 programsToSave.push({
                    id: prog.id || `prog_${startTs}_${pIndex}`,
@@ -786,7 +782,7 @@ if (typeof window !== 'undefined') {
    */
   const fetchEpgAdditive = async () => {
     const state = useAppStore.getState();
-    const channels = state._allLiveChannels;
+    const channels = state.liveChannels;
     if (!channels || channels.length === 0) return;
 
     const { getCustomEpgBulk } = await import('../services/api');
@@ -804,10 +800,6 @@ if (typeof window !== 'undefined') {
 
         let decodedTitle = prog.title || '';
         let decodedDesc = prog.description || '';
-        try {
-          if (typeof decodedTitle === 'string' && decodedTitle.match(/^[A-Za-z0-9+/]+=*$/)) decodedTitle = atob(decodedTitle);
-          if (typeof decodedDesc === 'string' && decodedDesc.match(/^[A-Za-z0-9+/]+=*$/)) decodedDesc = atob(decodedDesc);
-        } catch(e) {}
         
         programsToSave.push({
            id: prog.id || `prog_${startTs}_${pIndex}`,

@@ -1296,11 +1296,11 @@ app.post('/api/custom-epg/bulk', express.json({ limit: '50mb' }), async (req, re
         return {
           id: `custom_${c.id}_${startTs}`,  // include channel id to prevent Dexie key collisions
           epg_id: matchedChannelId,
-          title: Buffer.from(title).toString('base64'),
+          title: title,
           lang: "",
           start: p.start_str || '',
           end: p.stop_str || '',
-          description: Buffer.from(desc).toString('base64'),
+          description: desc,
           channel_id: String(c.id),          // always use stream_id so Dexie lookup matches
           start_timestamp: startTs.toString(),
           stop_timestamp: stopTs.toString()
