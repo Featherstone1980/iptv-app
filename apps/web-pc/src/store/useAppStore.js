@@ -531,7 +531,11 @@ export const useAppStore = create((set, get) => ({
         const inDb = existingDexieIds.has(cId);
         return !inMemory && !inDb;
       });
-      
+
+      if (window.location.hostname === 'localhost') {
+        window.alert(`EPG Debug: channels=${channels.length}, existingDexieIds=${existingDexieIds.size}, remaining=${remainingChannels.length}`);
+      }
+
       if (remainingChannels.length === 0) {
         set({ epgLoadingProgress: 100 });
         return;
