@@ -4,6 +4,9 @@ Welcome to the **StreamPro IPTV** Monorepo. This repository contains the unified
 
 This project is structured as an **NPM Workspace (Monorepo)**. This allows us to share core business logic (like API fetching, EPG mathematical sorting, and User Profile management) across multiple completely different frontend applications.
 
+> [!NOTE]
+> For detailed instructions on how the EPG mapping and GitHub cloud automation works, please read the new **[EPG Architecture & Blueprint](./epg_blueprint.md)**.
+
 ## ðŸ“ Repository Structure
 
 ```text

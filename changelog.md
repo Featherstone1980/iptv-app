@@ -1,5 +1,15 @@
 # StreamPro IPTV - Changelog
 
+## [2026-06-27] EPG Architecture Overhaul: Exact Matching & Cloud Workflows
+- **`process_epg.js`**: Enhanced the SAX XML parser to correctly extract `<display-name>` tags and map them directly to their parent `<channel id="...">`. These exact mappings are now exported to a new `display_names.json` file.
+- **`process_epg.js`**: Fixed a critical memory leak during SAX parsing where `currentTag` was not being cleared on `closetag`, causing rogue text nodes (like whitespace) to overwrite mappings during processing of large (600MB+) XML files.
+- **`api.js`**: Completely rewrote `getCustomEpgBulk` to eliminate unreliable "fuzzy guessing" and instead use a robust, deterministic 5-tier fallback system:
+  1. **Manual Overrides**: Case-insensitive check of user mappings from `epg-editor`.
+  2. **Display Names**: Uses the new `display_names.json` to perfectly link provider channel names (e.g. "USA AMC") to the XML `<channel id="...">`.
+  3. **Exact EPG ID**: Case-insensitive matching of the provider's `epg_channel_id`.
+  4. **Generated Channel Prefix**: Support for custom generated XMLs by testing `channel_${stream_id}`.
+  5. **Ultimate Fallback**: Raw ID.
+- **`.github/workflows/update_epg.yml`**: Added `--max-old-space-size=4096` to the `node` execution command to prevent GitHub Actions from crashing with `Out Of Memory` errors when chewing through 600MB+ XML payloads. Added instructions for users to provide their `EPG_URL` as a GitHub Secret so the cloud runner automatically downloads and processes the massive files rather than relying on direct repository uploads (which bypasses GitHub's 100MB file size limit).
 ## [2026-06-27] Critical Fix: EPG Broadcasts Were Silently Failing
 - **`server.js`**: `broadcastEpgUpdated()` and `epgSseClients` were declared at lines ~1410/1384 but called from `spawnEpgWorker` at line ~1048. `const` is NOT hoisted — every SSE broadcast was throwing a `ReferenceError` silently inside the worker's message handler, meaning the frontend **never received the signal to fetch EPG data**. Fixed by moving both declarations before `spawnEpgWorker`.
 - **`server.js`**: Removed orphaned `} catch (workerErr)` block left by a previous edit — was causing a `SyntaxError: Unexpected token 'catch'` crash on startup. Restored proper `try { await spawnEpgWorker(url); } catch` structure.
