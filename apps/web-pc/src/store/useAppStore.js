@@ -540,10 +540,12 @@ export const useAppStore = create((set, get) => ({
         let bulkRes = await getCustomEpgBulk(chunk);
         
         let retryCount = 0;
-        while (bulkRes && bulkRes.status === 'downloading_in_background' && retryCount < 12) {
-          console.log("[EPG] Backend is parsing XMLTV files. Waiting 5 seconds...");
+        // ONLY wait if the backend hasn't even emitted the first batch yet.
+        // Once the first batch arrives, bulkRes.epg_listings will be populated, and we can proceed!
+        while (bulkRes && bulkRes.status === 'downloading_in_background' && (!bulkRes.epg_listings || Object.keys(bulkRes.epg_listings).length === 0) && retryCount < 12) {
+          console.log("[EPG] Waiting for first batch of custom EPG...");
           set({ epgLoadingProgress: -1 }); // Signal UI that we are waiting for backend
-          await new Promise(r => setTimeout(r, 5000));
+          await new Promise(r => setTimeout(r, 2000));
           bulkRes = await getCustomEpgBulk(chunk);
           retryCount++;
         }
