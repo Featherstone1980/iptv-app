@@ -543,8 +543,9 @@ export const useAppStore = create((set, get) => ({
       const foundIds = new Set();
       
       const USE_LOCAL = true; // Hardcoded to use our local Node.js proxy instead of remote CDN
-      // Increase batch size to 1000 channels to dramatically reduce HTTP request overhead (20 requests instead of 200)
-      const batchSize = 1000; 
+      // Reduce batch size to 100 channels to guarantee instantaneous JSON parsing on the frontend
+      // and prevent massive database locking during sync.
+      const batchSize = 100; 
       
       set({ epgLoadingProgress: 0 }); // Show progress bar instantly
       for (let i = 0; i < remainingChannels.length; i += batchSize) {
@@ -597,7 +598,11 @@ export const useAppStore = create((set, get) => ({
              for (let j = 0; j < programsToSave.length; j += DB_CHUNK_SIZE) {
                const dbChunk = programsToSave.slice(j, j + DB_CHUNK_SIZE);
                await epgDb.programs.bulkPut(dbChunk).catch(e => console.error("Dexie bulkPut error:", e));
-               await new Promise(r => requestAnimationFrame(r)); // Yield to UI to keep progress bar spinning smoothly
+               
+               // CRITICAL: Yield to the macrotask queue for 100ms.
+               // This guarantees IndexedDB finishes committing the transaction AND gives
+               // EPGGrid.jsx enough time to execute its database reads, preventing grid freezes.
+               await new Promise(r => setTimeout(r, 100)); 
              }
           }
         }

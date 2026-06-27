@@ -1179,15 +1179,14 @@ const cleanChannelName = (name) => {
 const jaccardSim = (a, b) => {
   if (a === b) return 1;
   if (!a || !b || a.length < 2 || b.length < 2) return a === b ? 1 : 0;
-  const bigrams = (s) => {
-    const result = new Set();
-    for (let i = 0; i < s.length - 1; i++) result.add(s.slice(i, i + 2));
-    return result;
-  };
-  const biA = bigrams(a), biB = bigrams(b);
+  
+  // Optimized bigram matching without Set allocations
   let intersection = 0;
-  for (const g of biA) { if (biB.has(g)) intersection++; }
-  const union = biA.size + biB.size - intersection;
+  for (let i = 0; i < a.length - 1; i++) {
+    const bi = a[i] + a[i+1];
+    if (b.indexOf(bi) !== -1) intersection++;
+  }
+  const union = (a.length - 1) + (b.length - 1) - intersection;
   return union === 0 ? 0 : intersection / union;
 };
 app.get('/api/custom-epg/keys', async (req, res) => {
@@ -1264,13 +1263,22 @@ app.post('/api/custom-epg/bulk', express.json({ limit: '50mb' }), async (req, re
       }
     }
 
-    // Tier 3: Fuzzy Jaccard match against channelMap keys
+    // Tier 3: Fast Exact Match then Fuzzy Jaccard match against channelMap keys
     if (!matchedChannelId) {
       const cleaned = cleanChannelName(channelName);
-      if (cleaned.length >= 2) {
+      
+      // Fast path: Exact match
+      if (epgData.channelMap[cleaned]) {
+        matchedChannelId = epgData.channelMap[cleaned][0];
+      } 
+      // Slow path: Jaccard fuzzy match
+      else if (cleaned.length >= 2) {
         let bestScore = 0;
         let bestId = null;
         for (const [key, ids] of Object.entries(epgData.channelMap)) {
+          // Optimization: Skip jaccard if strings share almost no letters
+          if (Math.abs(cleaned.length - key.length) > 5) continue;
+          
           const score = jaccardSim(cleaned, key);
           if (score > bestScore) {
             bestScore = score;
