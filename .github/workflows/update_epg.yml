@@ -39,7 +39,7 @@ jobs:
           fi
           
           # Run the parsing script
-          node scripts/process_epg.js
+          node --max-old-space-size=4096 scripts/process_epg.js
         env:
           EPG_URL: ${{ secrets.EPG_URL }}
           OUTPUT_DIR: public/epg_data
