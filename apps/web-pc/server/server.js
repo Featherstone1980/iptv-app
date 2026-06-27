@@ -976,7 +976,7 @@ let customEpgLastFetch = 0;
 // A 618MB XML file CANNOT be parsed in-memory without freezing Node.js.
 // Instead we use a Worker thread with a SAX streaming parser.
 const CUSTOM_EPG_URLS = [
-  'C:\\Users\\Shane\\Desktop\\StreamPro EPGs\\my_epg_2026-06-25T07-47-53-862Z.xml'
+  'C:\\Users\\Shane\\Desktop\\StreamPro EPGs\\my_epg..xml'
 ];
 
 // Try to load EPG cache from disk on boot (fast path — skip worker if cache is fresh)
