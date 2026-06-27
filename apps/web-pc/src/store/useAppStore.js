@@ -593,31 +593,28 @@ export const useAppStore = create((set, get) => ({
           }
           
           if (programsToSave.length > 0) {
-             // Chunk Dexie inserts into batches of 10,000 to prevent crashing the browser engine
              const DB_CHUNK_SIZE = 10000;
              for (let j = 0; j < programsToSave.length; j += DB_CHUNK_SIZE) {
                const dbChunk = programsToSave.slice(j, j + DB_CHUNK_SIZE);
                await epgDb.programs.bulkPut(dbChunk).catch(e => console.error("Dexie bulkPut error:", e));
                
-               // CRITICAL: Yield to the macrotask queue for 100ms.
-               // This guarantees IndexedDB finishes committing the transaction AND gives
-               // EPGGrid.jsx enough time to execute its database reads, preventing grid freezes.
-               await new Promise(r => setTimeout(r, 100)); 
+               // CRITICAL: Yield to the macrotask queue for 20ms to allow UI updates
+               await new Promise(r => setTimeout(r, 20)); 
              }
           }
         }
         
         let currentProgress = Math.round(((i + chunk.length) / remainingChannels.length) * 50);
-        set({ epgLoadingProgress: currentProgress === 0 ? 1 : currentProgress }); // Ensure it doesn't look stuck at 0
+        set({ epgLoadingProgress: currentProgress === 0 ? 1 : currentProgress });
         
-        await new Promise(r => requestAnimationFrame(r));
+        await new Promise(r => setTimeout(r, 10)); // Local backend is blazing fast now, only 10ms stagger needed!
       }
       
       if (foundIds.size > 0) {
-        remainingChannels = remainingChannels.filter(c => {
-          const cId = c.stream_id || c.id;
-          return !foundIds.has(String(cId));
-        });
+        // If we are using a custom EPG and found ANY matches, we assume the user prefers the custom EPG.
+        // We WILL NOT fallback to hammering the provider's API for the 6,000 unmatched channels,
+        // as that takes 20+ minutes and risks an IP ban.
+        remainingChannels = [];
       }
 
       // 3. Process remaining channels (the slow 5%) concurrently in chunks via provider
