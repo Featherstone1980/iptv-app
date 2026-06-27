@@ -529,9 +529,9 @@ export const useAppStore = create((set, get) => ({
       const { epgDb } = await import('../db/epgDatabase');
       const foundIds = new Set();
       
-      const USE_LOCAL = import.meta.env.VITE_USE_LOCAL_EPG === 'true';
-      // Reduce local chunk size from 500 to 100 to prevent locking the UI thread during JSON parsing & IndexedDB bulkPut
-      const batchSize = USE_LOCAL ? 100 : 25; 
+      const USE_LOCAL = true; // Hardcoded to use our local Node.js proxy instead of remote CDN
+      // Chunk size of 100 prevents locking the UI thread during JSON parsing & IndexedDB bulkPut
+      const batchSize = 100; 
       
       set({ epgLoadingProgress: 0 }); // Show progress bar instantly
       for (let i = 0; i < remainingChannels.length; i += batchSize) {
@@ -599,12 +599,9 @@ export const useAppStore = create((set, get) => ({
         
         set({ epgLoadingProgress: Math.round(((i + chunk.length) / remainingChannels.length) * 50) });
         
-        // ALWAYS yield to the main thread! Even if local, we need to let the browser paint the UI so it stays smooth.
-        if (!USE_LOCAL && i + batchSize < remainingChannels.length) {
-          await new Promise(r => setTimeout(r, 200)); // GitHub Pages DDoS protection delay
-        } else {
-          await new Promise(r => requestAnimationFrame(r)); // Yield to UI thread to prevent stuttering
-        }
+        // ALWAYS yield to the main thread! 
+        // 200ms delay was for DDoS protection against remote CDN. Since we use local proxy, requestAnimationFrame is all we need to keep UI smooth!
+        await new Promise(r => requestAnimationFrame(r));
       }
       
       if (foundIds.size > 0) {
