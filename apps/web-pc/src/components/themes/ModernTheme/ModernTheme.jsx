@@ -312,6 +312,74 @@ const ModernTheme = ({ userData }) => {
                   <DragDropHint onDismiss={() => userData.dismissDragDropHint()} />
                 </div>
               )}
+              {epgLoadingProgress >= -1 && epgLoadingProgress < 100 && (
+                <div style={{ 
+                  marginBottom: '16px', 
+                  background: 'rgba(255,255,255,0.03)', 
+                  borderRadius: '12px', 
+                  padding: '16px 20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '20px',
+                  border: '1px solid rgba(255,255,255,0.06)',
+                  backdropFilter: 'blur(12px)',
+                  boxShadow: '0 4px 24px rgba(0,0,0,0.2)'
+                }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '0.9rem', fontWeight: '500', color: 'rgba(255,255,255,0.9)', letterSpacing: '0.02em' }}>
+                        {epgLoadingProgress === -1 ? 'Initializing local EPG engine... (Parsing 700MB+ XMLTV file)' : 'Downloading & mapping EPG guide data...'}
+                      </span>
+                      <span style={{ fontSize: '0.9rem', fontWeight: 'bold', color: 'var(--accent-primary, #ffffff)' }}>
+                        {epgLoadingProgress === -1 ? 'Please Wait' : `${epgLoadingProgress}%`}
+                      </span>
+                    </div>
+                    <div style={{ 
+                      width: '100%', 
+                      height: '6px', 
+                      background: 'rgba(0,0,0,0.4)', 
+                      borderRadius: '3px',
+                      overflow: 'hidden',
+                      position: 'relative'
+                    }}>
+                      <div 
+                        style={{ 
+                          width: epgLoadingProgress === -1 ? '30%' : `${epgLoadingProgress}%`,
+                          height: '100%', 
+                          background: 'linear-gradient(90deg, rgba(255,255,255,0.4), #ffffff)',
+                          borderRadius: '3px',
+                          transition: epgLoadingProgress === -1 ? 'none' : 'width 0.3s ease-out',
+                          position: 'absolute',
+                          left: 0,
+                          top: 0,
+                          animation: epgLoadingProgress === -1 ? 'epg-indeterminate 1.5s infinite linear' : 'none'
+                        }} 
+                      />
+                    </div>
+                  </div>
+                  <div style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '50%',
+                    background: 'rgba(255,255,255,0.08)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    animation: 'spin 2s linear infinite'
+                  }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#ffffff' }}>
+                      <line x1="12" y1="2" x2="12" y2="6"></line>
+                      <line x1="12" y1="18" x2="12" y2="22"></line>
+                      <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
+                      <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
+                      <line x1="2" y1="12" x2="6" y2="12"></line>
+                      <line x1="18" y1="12" x2="22" y2="12"></line>
+                      <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
+                      <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
+                    </svg>
+                  </div>
+                </div>
+              )}
               <EPGGrid 
                 channels={filteredLiveChannels} 
                 categoryId={activeLiveCategoryId}
