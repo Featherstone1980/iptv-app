@@ -14,6 +14,12 @@ epgDb.version(2).stores({
   // Clear all programs — stale data had wrong channel_id (EPG ID vs stream_id)
   return tx.table('programs').clear();
 });
+epgDb.version(3).stores({
+  programs: 'id, channel_id, start_timestamp, stop_timestamp, [channel_id+start_timestamp]'
+}).upgrade(tx => {
+  // Clear all programs to flush out cached base64/gibberish text from previous bugs
+  return tx.table('programs').clear();
+});
 
 // Helper methods
 export const saveProgramsToDb = async (programs) => {
