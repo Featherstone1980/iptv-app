@@ -318,6 +318,52 @@ export const getCustomEpgBulk = async (channels) => {
                 }
               }
 
+              // 4.5 Fuzzy Jaccard match against index keys (Mirroring backend fuzzy logic)
+              if (!chId && chNameLower) {
+                const cleanChannelName = (name) => {
+                  if (!name) return "";
+                  let clean = name.toLowerCase().trim();
+                  clean = clean.replace(/(?:us|uk|ca|nz|au|za|in|ru|fr|de|it|es|pt)\s*[:|\\-]\s*/gi, '');
+                  clean = clean.replace(/\s*[:|\\-]\s*(?:us|uk|ca|nz|au|za|in|ru|fr|de|it|es|pt)$/gi, '');
+                  clean = clean.replace(/\b(?:hd|fhd|uhd|4k|sd|1080p|720p|h265|hevc|raw|vip|premium|local)\b/gi, '');
+                  return clean.replace(/[^a-z0-9]/g, '');
+                };
+                
+                const jaccardSim = (a, b) => {
+                  if (a === b) return 1;
+                  if (!a || !b || a.length < 2 || b.length < 2) return a === b ? 1 : 0;
+                  const bigrams = (s) => {
+                    const result = new Set();
+                    for (let i = 0; i < s.length - 1; i++) result.add(s.slice(i, i + 2));
+                    return result;
+                  };
+                  const biA = bigrams(a), biB = bigrams(b);
+                  let intersection = 0;
+                  for (const g of biA) { if (biB.has(g)) intersection++; }
+                  const union = biA.size + biB.size - intersection;
+                  return union === 0 ? 0 : intersection / union;
+                };
+
+                const cleanedName = cleanChannelName(chNameLower);
+                if (cleanedName.length >= 2) {
+                  let bestScore = 0;
+                  let bestId = null;
+                  for (const key of Object.keys(caseInsensitiveIndex)) {
+                    // Try to match against the raw key and the cleaned key
+                    const score1 = jaccardSim(cleanedName, key);
+                    const score2 = jaccardSim(cleanedName, cleanChannelName(key));
+                    const maxScore = Math.max(score1, score2);
+                    if (maxScore > bestScore) {
+                      bestScore = maxScore;
+                      bestId = key;
+                    }
+                  }
+                  if (bestScore >= 0.6 && bestId) {
+                    chId = caseInsensitiveIndex[bestId];
+                  }
+                }
+              }
+
               // 5. Ultimate Fallback (will probably 404 but try anyway)
               if (!chId) {
                 chId = ch.epg_channel_id || ch.stream_id || ch.id;
