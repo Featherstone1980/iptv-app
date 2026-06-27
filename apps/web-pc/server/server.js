@@ -80,6 +80,13 @@ app.use(express.static(path.join(__dirname, '../dist'), {
   }
 }));
 
+// Serve local EPG chunks
+app.use('/epg_data', express.static(path.join(__dirname, '../../../public/epg_data'), {
+  setHeaders: (res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+}));
+
 const XTREAM_URL = process.env.XTREAM_URL;
 const USERNAME = process.env.XTREAM_USERNAME;
 const PASSWORD = process.env.XTREAM_PASSWORD;

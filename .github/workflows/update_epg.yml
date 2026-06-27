@@ -9,6 +9,7 @@ on:
     paths:
       - 'my_epg.xml' # Trigger automatically if the user uploads a new file
       - 'apps/epg-editor/server/manual_overrides.json' # Trigger when custom mapping information is updated
+      - 'public/epg_data/**' # Trigger when new chunks are committed locally
 
 permissions:
   contents: write
@@ -33,14 +34,20 @@ jobs:
       - name: Process EPG
         run: |
           mkdir -p public/epg_data
+          
           # If an external URL is provided via GitHub Secrets, download it
           if [ -n "$EPG_URL" ]; then
             echo "Downloading EPG from $EPG_URL..."
             curl -L -o my_epg.xml "$EPG_URL"
           fi
           
-          # Run the parsing script
-          node --max-old-space-size=4096 scripts/process_epg.js
+          # Run the parsing script only if the XML exists
+          if [ -f "my_epg.xml" ]; then
+            echo "XML found! Parsing into JSON chunks..."
+            node --max-old-space-size=4096 scripts/process_epg.js
+          else
+            echo "No XML file found. Skipping processing and using existing chunks in public/epg_data."
+          fi
         env:
           EPG_URL: ${{ secrets.EPG_URL }}
           OUTPUT_DIR: public/epg_data

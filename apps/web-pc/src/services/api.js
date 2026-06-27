@@ -203,14 +203,16 @@ let globalEpgIndex = null;
 let globalDisplayNames = null;
 
 export const getCustomEpgBulk = async (channels) => {
-    const GITHUB_PAGES_URL = "https://Featherstone1980.github.io/iptv-app"; 
+    const USE_GITHUB = import.meta.env.VITE_USE_GITHUB_PAGES === 'true';
+    // Use GitHub Pages URL if configured, otherwise fallback to the local server
+    const GITHUB_PAGES_URL = USE_GITHUB ? "https://Featherstone1980.github.io/iptv-app" : "http://localhost:3001/epg_data";
 
     if (GITHUB_PAGES_URL) {
       try {
         // 1. Fetch Overrides
         if (!globalEpgOverrides) {
           try {
-            const overRes = await fetch(`${GITHUB_PAGES_URL}/epg_data/manual_overrides.json`);
+            const overRes = await fetch(`${GITHUB_PAGES_URL}/manual_overrides.json`);
             if (overRes.ok) {
               globalEpgOverrides = await overRes.json();
             } else {
@@ -224,7 +226,7 @@ export const getCustomEpgBulk = async (channels) => {
         // 2. Fetch Index
         if (!globalEpgIndex) {
           try {
-            const idxRes = await fetch(`${GITHUB_PAGES_URL}/epg_data/index.json?t=${Date.now()}`);
+            const idxRes = await fetch(`${GITHUB_PAGES_URL}/index.json?t=${Date.now()}`);
             if (idxRes.ok) {
               globalEpgIndex = await idxRes.json();
             } else {
@@ -238,7 +240,7 @@ export const getCustomEpgBulk = async (channels) => {
         // 3. Fetch Display Names
         if (!globalDisplayNames) {
           try {
-            const dispRes = await fetch(`${GITHUB_PAGES_URL}/epg_data/display_names.json?t=${Date.now()}`);
+            const dispRes = await fetch(`${GITHUB_PAGES_URL}/display_names.json?t=${Date.now()}`);
             if (dispRes.ok) {
               globalDisplayNames = await dispRes.json();
             } else {
@@ -264,6 +266,13 @@ export const getCustomEpgBulk = async (channels) => {
           });
         }
         
+        const caseInsensitiveOverrides = {};
+        if (globalEpgOverrides) {
+          Object.entries(globalEpgOverrides).forEach(([name, id]) => {
+            caseInsensitiveOverrides[name.toLowerCase().trim()] = id;
+          });
+        }
+        
         const epg_listings = {};
         const batchSize = 25; // Fetch 25 channels at a time
         
@@ -273,10 +282,12 @@ export const getCustomEpgBulk = async (channels) => {
               let chId = null;
               const chNameLower = (ch.name || "").toLowerCase().trim();
               
-              // 1. Try Manual Override (Case-insensitive check against actual files)
-              if (globalEpgOverrides && globalEpgOverrides[ch.name]) {
-                const override = globalEpgOverrides[ch.name];
-                const lowerOverride = override.toLowerCase().trim();
+              // 1. Try Manual Override (Case-insensitive check by name or epg_channel_id)
+              const epgIdLower = (ch.epg_channel_id || "").toLowerCase().trim();
+              const matchedOverride = caseInsensitiveOverrides[chNameLower] || (epgIdLower && caseInsensitiveOverrides[epgIdLower]);
+              
+              if (matchedOverride) {
+                const lowerOverride = matchedOverride.toLowerCase().trim();
                 if (caseInsensitiveIndex[lowerOverride]) {
                   chId = caseInsensitiveIndex[lowerOverride];
                 }
@@ -313,7 +324,7 @@ export const getCustomEpgBulk = async (channels) => {
               }
               if (chId) {
                 try {
-                  const res = await fetch(`${GITHUB_PAGES_URL}/epg_data/${encodeURIComponent(chId)}.json?t=${Date.now()}`);
+                  const res = await fetch(`${GITHUB_PAGES_URL}/${encodeURIComponent(chId)}.json?t=${Date.now()}`);
                   if (res.ok) {
                     const data = await res.json();
                     epg_listings[ch.stream_id] = data.map(p => ({

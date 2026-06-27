@@ -440,6 +440,7 @@ export const useAppStore = create((set, get) => ({
     const channels = (liveList || []).map(c => ({
       id: c.stream_id,
       stream_id: c.stream_id,  // keep stream_id for VideoPlayer audio tracking
+      category_id: c.category_id,
       num: globalChannelMap.get(c.stream_id) || c.num || c.stream_id,
       name: c.name,
       logo: c.stream_icon,
